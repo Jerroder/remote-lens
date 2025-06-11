@@ -14,11 +14,14 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private let handshakeService = "00010000-0000-1000-0000-D8492FffA821"
     private let startHandshakeCharacteristic = "00010006-0000-1000-0000-D8492FffA821"
     private let endHandshakeCharacteristic = "0001000a-0000-1000-0000-D8492FffA821"
+    private let actuateShutterService = "00030000-0000-1000-0000-d8492fffa821"
+    private let actuateShutterCharacteristic = "00030030-0000-1000-0000-D8492FffA821"
 
     private var centralManager: CBCentralManager!
     private var connectedPeripheral: CBPeripheral?
     private var handshakeCharacteristic: CBCharacteristic?
     private var confirmationCharacteristic: CBCharacteristic?
+    private var shutterCharacteristic: CBCharacteristic?
 
     override init() {
         super.init()
@@ -51,7 +54,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.delegate = self
-        peripheral.discoverServices([CBUUID(string: handshakeService)])
+        let serviceUUIDs = [
+                CBUUID(string: handshakeService),
+                CBUUID(string: actuateShutterService)
+            ]
+
+        peripheral.discoverServices(serviceUUIDs)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -65,18 +73,22 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
 
+        print("Service: \(service.uuid)")
         for characteristic in characteristics {
-            print(characteristic.uuid)
+            print("  \(characteristic.uuid)")
             if characteristic.uuid == CBUUID(string: startHandshakeCharacteristic) {
-                print("Starting handshake")
-                let handshakeData = Data([0x01] + "iPhone 11 Pro".utf8)
+                print("Found characteristic for camera confirmation")
+                let handshakeData = Data([0x01] + "iPhone 11 Pro".utf8) // @TODO: replace with prompted name
                 peripheral.writeValue(handshakeData, for: characteristic, type: .withResponse)
 
                 confirmationCharacteristic = characteristic
                 peripheral.setNotifyValue(true, for: confirmationCharacteristic!)
             } else if characteristic.uuid == CBUUID(string: endHandshakeCharacteristic) {
-                print("Sending info to camera")
+                print("Found characteristic for handshake")
                 handshakeCharacteristic = characteristic
+            } else if characteristic.uuid == CBUUID(string: actuateShutterCharacteristic) {
+                print("Found characteristic for shutter")
+                shutterCharacteristic = characteristic
             }
         }
     }
@@ -97,7 +109,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
     func performHandshake(with peripheral: CBPeripheral) {
         guard let characteristic = handshakeCharacteristic else {
-            print("Not ready for handshake or characteristic not found.")
+            print("Handshake characteristic not found.")
             return
         }
         
@@ -110,7 +122,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         peripheral.writeValue(deviceIDData, for: characteristic, type: .withResponse)
 
         // Write device name
-        let deviceNameData = Data([0x04] + "iPhone 11 Pro".utf8)
+        let deviceNameData = Data([0x04] + "iPhone 11 Pro".utf8) // @TODO: replace with prompted name
         peripheral.writeValue(deviceNameData, for: characteristic, type: .withResponse)
 
         // Write device type (e.g., iOS)
@@ -120,5 +132,32 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         // Finish handshake
         let finishHandshakeData = Data([0x01])
         peripheral.writeValue(finishHandshakeData, for: characteristic, type: .withResponse)
+    }
+    
+    func pressShutter() {
+        guard let shutterCharacteristic = shutterCharacteristic else {
+            print("Shutter characteristic not found.")
+            return
+        }
+
+        let pressData = Data([0x00, 0x01])
+        connectedPeripheral?.writeValue(pressData, for: shutterCharacteristic, type: .withResponse)
+    }
+
+    func releaseShutter() {
+        guard let shutterCharacteristic = shutterCharacteristic else {
+            print("Shutter characteristic not found.")
+            return
+        }
+
+        let releaseData = Data([0x00, 0x02])
+        connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
+    }
+
+    func takePhoto() {
+        pressShutter()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.releaseShutter()
+        }
     }
 }

@@ -6,21 +6,51 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
     @StateObject private var bleManager = BluetoothManager()
 
     var body: some View {
         NavigationView {
-            List(bleManager.peripherals, id: \.identifier) { peripheral in
-                Button(action: {
-                    bleManager.connect(to: peripheral)
-                }) {
-                    Text(peripheral.name ?? "Unknown Device")
+            VStack {
+                List(bleManager.peripherals, id: \.identifier) { peripheral in
+                    Button(action: {
+                        bleManager.connect(to: peripheral)
+                    }) {
+                        Text(peripheral.name ?? "Unknown Device")
+                    }
+                }
+                .navigationTitle("BLE Devices")
+
+                VStack {
+                    Button("Take Photo") {
+                        bleManager.takePhoto()
+                    }
+                    .padding()
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+
+                    HStack {
+                        Button("Press Shutter") {
+                            bleManager.pressShutter()
+                        }
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+
+                        Button("Release Shutter") {
+                            bleManager.releaseShutter()
+                        }
+                        .padding()
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .padding()
                 }
             }
-            .navigationTitle("BLE Devices")
         }
     }
 }

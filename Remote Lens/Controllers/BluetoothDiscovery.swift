@@ -57,7 +57,6 @@ class BluetoothDiscovery: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         guard let services = peripheral.services else { return }
 
         for service in services {
-            print("Discovered service: \(service.uuid)")
             peripheral.discoverCharacteristics(nil, for: service)
         }
     }
@@ -65,8 +64,9 @@ class BluetoothDiscovery: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
 
+        print("Characteristics for service: \(service.uuid)")
         for characteristic in characteristics {
-            print("Discovered characteristic: \(characteristic.uuid)")
+            print("  Discovered characteristic: \(characteristic.uuid)")
         }
     }
 
