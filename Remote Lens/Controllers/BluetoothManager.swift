@@ -8,12 +8,17 @@
 import CoreBluetooth
 
 class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
-    private var centralManager: CBCentralManager!
     @Published var peripherals = [CBPeripheral]()
+    
     private let relevantDeviceNames = ["EOSR6"]
+    private let handshakeService = "00010000-0000-1000-0000-D8492FffA821"
+    private let startHandshakeCharacteristic = "00010006-0000-1000-0000-D8492FffA821"
+    private let endHandshakeCharacteristic = "0001000a-0000-1000-0000-D8492FffA821"
+
+    private var centralManager: CBCentralManager!
     private var connectedPeripheral: CBPeripheral?
     private var handshakeCharacteristic: CBCharacteristic?
-    // private var isReadyForHandshake = false
+    private var confirmationCharacteristic: CBCharacteristic?
 
     override init() {
         super.init()
@@ -46,7 +51,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.delegate = self
-        peripheral.discoverServices([CBUUID(string: "00010000-0000-1000-0000-D8492FffA821")])
+        peripheral.discoverServices([CBUUID(string: handshakeService)])
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -62,43 +67,41 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
         for characteristic in characteristics {
             print(characteristic.uuid)
-            if characteristic.uuid == CBUUID(string: "00010006-0000-1000-0000-D8492FffA821") {
+            if characteristic.uuid == CBUUID(string: startHandshakeCharacteristic) {
                 print("Starting handshake")
                 let handshakeData = Data([0x01] + "iPhone 11 Pro".utf8)
                 peripheral.writeValue(handshakeData, for: characteristic, type: .withResponse)
-            } else if characteristic.uuid == CBUUID(string: "0001000a-0000-1000-0000-D8492FffA821") {
+
+                confirmationCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: confirmationCharacteristic!)
+            } else if characteristic.uuid == CBUUID(string: endHandshakeCharacteristic) {
                 print("Sending info to camera")
                 handshakeCharacteristic = characteristic
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                    self.performHandshake(with: peripheral)
-                }
-
             }
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         print("didUpdateValueFor \(characteristic.uuid)")
-        if characteristic.uuid == CBUUID(string: "00010006-0000-1000-0000-D8492FffA821") {
-            if let value = characteristic.value, value == Data([0x02]) {
-                print("User pressed OK. Ready to perform handshake.")
-                // isReadyForHandshake = true
-                performHandshake(with: peripheral)
-                
-                peripheral.setNotifyValue(true, for: characteristic)
-            } else if let value = characteristic.value, value == Data([0x03]) {
-                print("Handshake failed")
+        if characteristic.uuid == confirmationCharacteristic?.uuid {
+            if let value = characteristic.value {
+                if value == Data([0x02]) {
+                    print("User pressed OK. Ready to perform handshake.")
+                    performHandshake(with: peripheral)
+                } else if value == Data([0x03]) {
+                    print("Handshake failed")
+                }
             }
         }
     }
 
     func performHandshake(with peripheral: CBPeripheral) {
-        guard /* isReadyForHandshake,*/ let characteristic = handshakeCharacteristic else {
+        guard let characteristic = handshakeCharacteristic else {
             print("Not ready for handshake or characteristic not found.")
             return
         }
         
-        print("handshake")
+        print("Performing handshake...")
 
         // Write device ID (16 random bytes)
         let deviceID = (0..<16).map { _ in UInt8.random(in: 0...255) }
