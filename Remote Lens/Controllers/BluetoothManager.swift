@@ -6,6 +6,7 @@
 //
 
 import CoreBluetooth
+import Foundation
 
 class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var peripherals = [CBPeripheral]()
@@ -17,11 +18,13 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private let actuateShutterService = "00030000-0000-1000-0000-d8492fffa821"
     private let actuateShutterCharacteristic = "00030030-0000-1000-0000-D8492FffA821"
 
+    private var discoveredPeripheralIDs = Set<UUID>()
     private var centralManager: CBCentralManager!
     private var connectedPeripheral: CBPeripheral?
     private var handshakeCharacteristic: CBCharacteristic?
     private var confirmationCharacteristic: CBCharacteristic?
     private var shutterCharacteristic: CBCharacteristic?
+    private var scanTimer: Timer?
 
     override init() {
         super.init()
@@ -30,23 +33,44 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn {
-            centralManager.scanForPeripherals(withServices: nil, options: nil)
+            startScanningCycle()
         } else {
             print("Bluetooth is not available.")
         }
     }
+    
+    private func startScanningCycle() {
+        // Invalidate any existing timer to ensure only one cycle is active
+        scanTimer?.invalidate()
 
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        if let peripheralName = peripheral.name, relevantDeviceNames.contains(peripheralName) {
-            if !peripherals.contains(where: { $0.identifier == peripheral.identifier }) {
-                DispatchQueue.main.async {
-                    self.peripherals.append(peripheral)
-                }
+        // Start scanning
+        centralManager.scanForPeripherals(withServices: nil, options: nil)
+
+        // Stop scanning after 1 second
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.centralManager.stopScan()
+
+            // Schedule the next scan cycle after 5 seconds
+            self?.scanTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+                self?.startScanningCycle()
             }
         }
     }
 
+    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
+        if !discoveredPeripheralIDs.contains(peripheral.identifier) {
+            discoveredPeripheralIDs.insert(peripheral.identifier)
+            DispatchQueue.main.async {
+                self.peripherals.append(peripheral)
+            }
+        } else {
+            print("Peripheral discovered twice: \(peripheral.name ?? "Unknown")")
+        }
+    }
+
     func connect(to peripheral: CBPeripheral) {
+        centralManager.stopScan()
+        scanTimer?.invalidate()
         centralManager.connect(peripheral, options: nil)
         connectedPeripheral = peripheral
         connectedPeripheral?.delegate = self
@@ -54,6 +78,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.delegate = self
+
         let serviceUUIDs = [
                 CBUUID(string: handshakeService),
                 CBUUID(string: actuateShutterService)
@@ -73,9 +98,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
 
-        print("Service: \(service.uuid)")
         for characteristic in characteristics {
-            print("  \(characteristic.uuid)")
             if characteristic.uuid == CBUUID(string: startHandshakeCharacteristic) {
                 print("Found characteristic for camera confirmation")
                 let handshakeData = Data([0x01] + "iPhone 11 Pro".utf8) // @TODO: replace with prompted name
@@ -101,10 +124,16 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     print("User pressed OK. Ready to perform handshake.")
                     performHandshake(with: peripheral)
                 } else if value == Data([0x03]) {
-                    print("Handshake failed")
+                    print("User pressed Cancel.")
                 }
             }
         }
+    }
+    
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
+
+        startScanningCycle()
     }
 
     func performHandshake(with peripheral: CBPeripheral) {

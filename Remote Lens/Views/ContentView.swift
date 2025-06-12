@@ -6,14 +6,28 @@
 //
 
 import SwiftUI
+import CoreBluetooth
 
 struct ContentView: View {
     @StateObject private var bleManager = BluetoothManager()
+    @State private var filterText = ""
+    
+    var filteredPeripherals: [CBPeripheral] {
+        if filterText.isEmpty {
+            return bleManager.peripherals
+        } else {
+            return bleManager.peripherals.filter { $0.name?.contains(filterText) ?? false }
+        }
+    }
 
     var body: some View {
         NavigationView {
             VStack {
-                List(bleManager.peripherals, id: \.identifier) { peripheral in
+                TextField("Filter Devices", text: $filterText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+
+                List(filteredPeripherals, id: \.identifier) { peripheral in
                     Button(action: {
                         bleManager.connect(to: peripheral)
                     }) {
