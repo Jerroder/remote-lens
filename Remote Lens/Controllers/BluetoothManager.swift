@@ -10,17 +10,18 @@ import Foundation
 
 class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var peripherals = [CBPeripheral]()
-    
-    private let relevantDeviceNames = ["EOSR6"]
+    @Published var isConnected = false
+    @Published var connectedPeripheral: CBPeripheral?
+
     private let handshakeService = "00010000-0000-1000-0000-D8492FffA821"
     private let startHandshakeCharacteristic = "00010006-0000-1000-0000-D8492FffA821"
     private let endHandshakeCharacteristic = "0001000a-0000-1000-0000-D8492FffA821"
     private let actuateShutterService = "00030000-0000-1000-0000-d8492fffa821"
     private let actuateShutterCharacteristic = "00030030-0000-1000-0000-D8492FffA821"
+    private let canonCompanyIdentifier = 0x01A9
 
     private var discoveredPeripheralIDs = Set<UUID>()
     private var centralManager: CBCentralManager!
-    private var connectedPeripheral: CBPeripheral?
     private var handshakeCharacteristic: CBCharacteristic?
     private var confirmationCharacteristic: CBCharacteristic?
     private var shutterCharacteristic: CBCharacteristic?
@@ -58,14 +59,25 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        if !discoveredPeripheralIDs.contains(peripheral.identifier) {
-            discoveredPeripheralIDs.insert(peripheral.identifier)
-            DispatchQueue.main.async {
-                self.peripherals.append(peripheral)
-            }
-        } else {
+        guard !discoveredPeripheralIDs.contains(peripheral.identifier) else {
             print("Peripheral discovered twice: \(peripheral.name ?? "Unknown")")
+            return
         }
+
+        if let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data {
+            if manufacturerData.count >= 2 {
+                let companyIdentifier = manufacturerData.subdata(in: 0..<2).withUnsafeBytes { $0.load(as: UInt16.self) }
+                if companyIdentifier == canonCompanyIdentifier {
+                    discoveredPeripheralIDs.insert(peripheral.identifier)
+                    DispatchQueue.main.async {
+                        self.peripherals.append(peripheral)
+                    }
+                    return
+                }
+            }
+        }
+        
+        print("Discovered non-Canon peripheral: \(peripheral.name ?? "Unknown")")
     }
 
     func connect(to peripheral: CBPeripheral) {
@@ -77,6 +89,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        DispatchQueue.main.async {
+            self.isConnected = true
+        }
+        
         peripheral.delegate = self
 
         let serviceUUIDs = [
@@ -132,6 +148,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
+        
+        DispatchQueue.main.async {
+            self.isConnected = false // Update connection state
+        }
 
         startScanningCycle()
     }
@@ -185,8 +205,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
     func takePhoto() {
         pressShutter()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.releaseShutter()
-        }
+        releaseShutter()
     }
 }

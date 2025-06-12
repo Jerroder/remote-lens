@@ -79,3 +79,31 @@ class BluetoothDiscovery: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         }
     }
 }
+
+//struct ContentView: View {
+//    @StateObject var bluetoothManager = BluetoothDiscovery()
+//
+//    var body: some View {
+//        VStack {
+//            Button(action: {
+//                bluetoothManager.toggleBluetooth()
+//            }) {
+//                Text(bluetoothManager.isBluetoothEnabled ? "Turn Off Bluetooth" : "Turn On Bluetooth")
+//                    .padding()
+//            }
+//
+//            Text("Bluetooth is \(bluetoothManager.isBluetoothEnabled ? "enabled" : "disabled")")
+//                .padding()
+//
+//            List(bluetoothManager.discoveredPeripherals, id: \.identifier) { peripheral in
+//                HStack {
+//                    Text(peripheral.name ?? "Unknown")
+//                    Spacer()
+//                    Button("Connect") {
+//                        bluetoothManager.connect(to: peripheral)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
