@@ -18,7 +18,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private let endHandshakeCharacteristic = "0001000a-0000-1000-0000-D8492FffA821"
     private let actuateShutterService = "00030000-0000-1000-0000-d8492fffa821"
     private let actuateShutterCharacteristic = "00030030-0000-1000-0000-D8492FffA821"
-    private let canonCompanyIdentifier = 0x01A9
+    private let canonCompanyIdentifier: UInt16 = 0x01A9
 
     private var discoveredPeripheralIDs = Set<UUID>()
     private var centralManager: CBCentralManager!
@@ -41,17 +41,18 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
     
     private func startScanningCycle() {
-        // Invalidate any existing timer to ensure only one cycle is active
         scanTimer?.invalidate()
+        
+        DispatchQueue.main.async {
+            self.peripherals.removeAll()
+            self.discoveredPeripheralIDs.removeAll()
+        }
 
-        // Start scanning
         centralManager.scanForPeripherals(withServices: nil, options: nil)
 
-        // Stop scanning after 1 second
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             self?.centralManager.stopScan()
 
-            // Schedule the next scan cycle after 5 seconds
             self?.scanTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
                 self?.startScanningCycle()
             }
@@ -133,7 +134,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        print("didUpdateValueFor \(characteristic.uuid)")
         if characteristic.uuid == confirmationCharacteristic?.uuid {
             if let value = characteristic.value {
                 if value == Data([0x02]) {
@@ -141,6 +141,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     performHandshake(with: peripheral)
                 } else if value == Data([0x03]) {
                     print("User pressed Cancel.")
+                    centralManager.cancelPeripheralConnection(peripheral)
                 }
             }
         }
@@ -150,7 +151,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
         
         DispatchQueue.main.async {
-            self.isConnected = false // Update connection state
+            self.isConnected = false
         }
 
         startScanningCycle()

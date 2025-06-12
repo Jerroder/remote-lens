@@ -45,14 +45,20 @@ struct ContentView: View {
                     }
                     .navigationTitle(bleManager.connectedPeripheral?.name ?? "Unknown Device")
                 } else {
-                    List(bleManager.peripherals, id: \.identifier) { peripheral in
-                        Button(action: {
-                            bleManager.connect(to: peripheral)
-                        }) {
-                            Text(peripheral.name ?? "Unknown Device")
+                    VStack {
+                        if bleManager.peripherals.isEmpty {
+                            Text("No devices found")
+                        } else {
+                            List(bleManager.peripherals, id: \.identifier) { peripheral in
+                                Button(action: {
+                                    bleManager.connect(to: peripheral)
+                                }) {
+                                    Text(peripheral.name ?? "Unknown Device")
+                                }
+                            }
                         }
                     }
-                    .navigationTitle("BLE Devices")
+                    .navigationTitle("Bluetooth Devices")
                 }
             }
         }
