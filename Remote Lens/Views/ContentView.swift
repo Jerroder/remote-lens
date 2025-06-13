@@ -18,13 +18,26 @@ struct ContentView: View {
                         Image(systemName: "camera")
                         Text("one_shot".localized(comment: "One Shot"))
                     }
-                    
-                    IntervalometerView().tabItem {
+
+                    IntervalometerView(bleManager: bleManager).tabItem {
                         Image(systemName: "timer")
                         Text("intervalometer".localized(comment: "Intervalometer"))
                     }
                 }
                 .navigationTitle(bleManager.connectedPeripheral?.name ?? "unknown_device".localized(comment: "Unknown Device"))
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button(action: {
+                                bleManager.disconnect()
+                            }) {
+                                Label("disconnect".localized(comment: "Disconnect"), systemImage: "wifi.slash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                    }
+                }
             } else {
                 ConnectionView(bleManager: bleManager)
             }

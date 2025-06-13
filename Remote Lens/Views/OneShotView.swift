@@ -1,5 +1,5 @@
 //
-//  OneShot.swift
+//  OneShotView.swift
 //  Remote Lens
 //
 //  Created by Jerroder on 2025-06-13.
@@ -11,6 +11,7 @@ struct OneShotView: View {
     @ObservedObject var bleManager: BluetoothManager
 
     @State private var isButtonPressed = false
+    @State private var hasTakenPhoto = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -24,34 +25,25 @@ struct OneShotView: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { _ in
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    isButtonPressed = true
+                                if !hasTakenPhoto { // prevent bursting when draging the finger
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isButtonPressed = true
+                                    }
+                                    bleManager.takePhoto()
+                                    hasTakenPhoto = true
                                 }
-                                bleManager.takePhoto()
                             }
                             .onEnded { _ in
                                 withAnimation(.easeInOut(duration: 0.2)) {
                                     isButtonPressed = false
                                 }
+                                hasTakenPhoto = false
                             }
                     )
                     .padding()
                     .foregroundColor(.white)
                 
                 Spacer()
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: {
-                        bleManager.disconnect()
-                    }) {
-                        Label("disconnect".localized(comment: "Disconnect"), systemImage: "wifi.slash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
             }
         }
     }
