@@ -27,10 +27,16 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var shutterCharacteristic: CBCharacteristic?
     private var scanTimer: Timer?
     private var shouldScan = true
+    private var lastConnectedPeripheralUUID: UUID?
+    private var isUserInitiatedDisconnect = false
 
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil)
+
+        if let uuidString = UserDefaults.standard.string(forKey: "lastConnectedPeripheralUUID") {
+            lastConnectedPeripheralUUID = UUID(uuidString: uuidString)
+        }
     }
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -79,6 +85,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     DispatchQueue.main.async {
                         self.peripherals.append(peripheral)
                     }
+
+                    if peripheral.identifier == lastConnectedPeripheralUUID && !isUserInitiatedDisconnect {
+                        connect(to: peripheral)
+                    }
+
                     return
                 }
             }
@@ -99,6 +110,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
         connectedPeripheral = peripheral
         connectedPeripheral?.delegate = self
+
+        lastConnectedPeripheralUUID = peripheral.identifier
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -114,6 +127,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             ]
 
         peripheral.discoverServices(serviceUUIDs)
+        UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "lastConnectedPeripheralUUID")
+        isUserInitiatedDisconnect = false
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -169,8 +184,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             self.isConnected = false
         }
 
-        shouldScan = true
-        startScanningCycle()
+        if !isUserInitiatedDisconnect {
+            shouldScan = true
+            startScanningCycle()
+        }
     }
 
     func performHandshake(with peripheral: CBPeripheral) {
@@ -223,5 +240,15 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func takePhoto() {
         pressShutter()
         releaseShutter()
+    }
+    
+    func disconnect() {
+        guard let peripheral = connectedPeripheral else {
+            print("No connected peripheral to disconnect from.")
+            return
+        }
+
+        isUserInitiatedDisconnect = true
+        centralManager.cancelPeripheralConnection(peripheral)
     }
 }

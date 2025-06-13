@@ -6,47 +6,51 @@
 //
 
 import SwiftUI
-import CoreBluetooth
 
 struct OneShotView: View {
-    @StateObject private var bleManager = BluetoothManager()
+    @ObservedObject var bleManager: BluetoothManager
+
+    @State private var isButtonPressed = false
 
     var body: some View {
-        NavigationStack {
+        GeometryReader { geometry in
             VStack {
-                if bleManager.isConnected {
-                    GeometryReader { geometry in
-                        VStack {
-                            Spacer()
-
-                            Button(action: {
+                Spacer()
+                
+                Image(systemName: isButtonPressed ? "circle.fill" : "camera.aperture")
+                    .font(.system(size: geometry.size.width * 0.7))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    isButtonPressed = true
+                                }
                                 bleManager.takePhoto()
-                            }) {
-                                Image(systemName: "camera.aperture")
-                                    .font(.system(size: geometry.size.width * 0.8))
                             }
-                            .padding()
-                            .foregroundColor(.white)
-                            
-                            Spacer()
-                        }
-                    }
-                    .navigationTitle(bleManager.connectedPeripheral?.name ?? "unknown_device".localized(comment: "Unknown Device"))
-                } else {
-                    VStack {
-                        if bleManager.peripherals.isEmpty {
-                            Text("no_devices_found".localized(comment: "No devices found"))
-                        } else {
-                            List(bleManager.peripherals, id: \.identifier) { peripheral in
-                                Button(action: {
-                                    bleManager.connect(to: peripheral)
-                                }) {
-                                    Text(peripheral.name ?? "unknown_device".localized(comment: "Unknown Device"))
+                            .onEnded { _ in
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    isButtonPressed = false
                                 }
                             }
-                        }
+                    )
+                    .padding()
+                    .foregroundColor(.white)
+                
+                Spacer()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: {
+                        bleManager.disconnect()
+                    }) {
+                        Label("disconnect".localized(comment: "Disconnect"), systemImage: "wifi.slash")
                     }
-                    .navigationTitle("bluetooth_devices".localized(comment: "Bluetooth Devices"))
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
         }

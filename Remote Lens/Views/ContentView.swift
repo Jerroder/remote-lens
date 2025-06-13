@@ -8,16 +8,25 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        TabView {
-            OneShotView().tabItem {
-                Image(systemName: "camera")
-                Text("one_shot".localized(comment: "One Shot"))
-            }
+    @StateObject private var bleManager = BluetoothManager()
 
-            IntervalometerView().tabItem {
-                Image(systemName: "timer")
-                Text("intervalometer".localized(comment: "Intervalometer"))
+    var body: some View {
+        NavigationStack {
+            if bleManager.isConnected {
+                TabView {
+                    OneShotView(bleManager: bleManager).tabItem {
+                        Image(systemName: "camera")
+                        Text("one_shot".localized(comment: "One Shot"))
+                    }
+                    
+                    IntervalometerView().tabItem {
+                        Image(systemName: "timer")
+                        Text("intervalometer".localized(comment: "Intervalometer"))
+                    }
+                }
+                .navigationTitle(bleManager.connectedPeripheral?.name ?? "unknown_device".localized(comment: "Unknown Device"))
+            } else {
+                ConnectionView(bleManager: bleManager)
             }
         }
     }
