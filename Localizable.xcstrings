@@ -1,0 +1,66 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "bluetooth_devices" : {
+      "comment" : "Bluetooth Devices",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Devices"
+          }
+        }
+      }
+    },
+    "intervalometer" : {
+      "comment" : "Intervalometer",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intervalometer"
+          }
+        }
+      }
+    },
+    "no_devices_found" : {
+      "comment" : "No devices found",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No devices found"
+          }
+        }
+      }
+    },
+    "one_shot" : {
+      "comment" : "One Shot",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One Shot"
+          }
+        }
+      }
+    },
+    "unknown_device" : {
+      "comment" : "Unknown Device",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown Device"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

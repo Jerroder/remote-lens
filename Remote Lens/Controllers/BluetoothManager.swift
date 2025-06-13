@@ -10,8 +10,8 @@ import Foundation
 
 class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var peripherals = [CBPeripheral]()
-    @Published var isConnected = false
     @Published var connectedPeripheral: CBPeripheral?
+    @Published var isConnected = false
 
     private let handshakeService = "00010000-0000-1000-0000-D8492FffA821"
     private let startHandshakeCharacteristic = "00010006-0000-1000-0000-D8492FffA821"
@@ -26,6 +26,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var confirmationCharacteristic: CBCharacteristic?
     private var shutterCharacteristic: CBCharacteristic?
     private var scanTimer: Timer?
+    private var shouldScan = true
 
     override init() {
         super.init()
@@ -41,6 +42,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
     
     private func startScanningCycle() {
+        guard shouldScan else {
+            print("Scanning is disabled.")
+            return
+        }
+
         scanTimer?.invalidate()
         
         DispatchQueue.main.async {
@@ -82,9 +88,15 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
 
     func connect(to peripheral: CBPeripheral) {
+        shouldScan = false
+
         centralManager.stopScan()
+
         scanTimer?.invalidate()
+        scanTimer = nil
+
         centralManager.connect(peripheral, options: nil)
+
         connectedPeripheral = peripheral
         connectedPeripheral?.delegate = self
     }
@@ -115,6 +127,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
 
+        print("Found service \(service.uuid)")
         for characteristic in characteristics {
             if characteristic.uuid == CBUUID(string: startHandshakeCharacteristic) {
                 print("Found characteristic for camera confirmation")
@@ -129,6 +142,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             } else if characteristic.uuid == CBUUID(string: actuateShutterCharacteristic) {
                 print("Found characteristic for shutter")
                 shutterCharacteristic = characteristic
+            } else {
+                print("Found characteristic \(characteristic.uuid)")
             }
         }
     }
@@ -154,6 +169,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             self.isConnected = false
         }
 
+        shouldScan = true
         startScanningCycle()
     }
 
