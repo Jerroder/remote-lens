@@ -18,12 +18,13 @@ struct IntervalometerView: View {
     @State private var waitBetweenPhotos: Double
     @State private var exposureTime: Double
     @State private var isRunning: Bool = false
+    @State private var showingInfoAlert: Bool = false
     
     @FocusState private var focusedField: Field?
 
-    private let numberOfPhotosKey = "numberOfPhotos"
-    private let waitBetweenPhotosKey = "waitBetweenPhotos"
-    private let exposureTimeKey = "exposureTime"
+    private let numberOfPhotosKey: String = "numberOfPhotos"
+    private let waitBetweenPhotosKey: String = "waitBetweenPhotos"
+    private let exposureTimeKey: String = "exposureTime"
 
     init(bleManager: BluetoothManager) {
         self.bleManager = bleManager
@@ -67,18 +68,38 @@ struct IntervalometerView: View {
                     .onChange(of: exposureTime) { _, _ in
                         UserDefaults.standard.set(exposureTime, forKey: exposureTimeKey)
                     }
+                
+                Button(action: {
+                    showingInfoAlert = true
+                }) {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.gray)
+                }
+                .alert(isPresented: $showingInfoAlert) {
+                    Alert(
+                        title: Text("Info"),
+                        message: Text("exposure_info_text".localized(comment: "If exposure is set to 0")),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
             }
 
-            Button(action: {
-                if self.isRunning {
-                    self.isRunning = false
-                } else {
-                    self.isRunning = true
-                    self.startIntervalometer()
+            HStack {
+                Spacer()
+
+                Button(action: {
+                    if self.isRunning {
+                        self.isRunning = false
+                    } else {
+                        self.isRunning = true
+                        self.startIntervalometer()
+                    }
+                    focusedField = nil
+                }) {
+                    Text(isRunning ? "stop".localized(comment: "Stop") : "start".localized(comment: "Start"))
                 }
-                focusedField = nil
-            }) {
-                Text(isRunning ? "stop".localized(comment: "Stop") : "start".localized(comment: "Start"))
+
+                Spacer()
             }
         }
         // Throws an error for some reason

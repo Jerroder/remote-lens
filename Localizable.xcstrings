@@ -127,6 +127,36 @@
         }
       }
     },
+    "exposure_info_text" : {
+      "comment" : "If exposure is set to 0",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Wenn die belichtungszeit auf 0 eingestellt ist, muss sie an der kamera eingestellt werden.\nWenn sie nicht 0 ist, stellen Sie sicher, dass die kamera im Bulb-Modus ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If exposure time is set to 0, it must be set on camera.\nIf it’s not 0, ensure the camera is in bulb mode."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Si el tiempo de exposición está establecido en 0, debe configurarse en la cámara.\nSi no es 0, asegúrese de que la cámara esté en modo bulbo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Si la durée d'exposition est 0, elle doit être configurée sur l’appareil.\nSi elle n’est pas 0, veillez à ce que l’appareil soit en mode poses longues."
+          }
+        }
+      }
+    },
     "exposure_time" : {
       "comment" : "Exposure time",
       "extractionState" : "manual",
@@ -156,6 +186,9 @@
           }
         }
       }
+    },
+    "Info" : {
+      "shouldTranslate" : false
     },
     "intervalometer" : {
       "comment" : "Intervalometer",
@@ -246,6 +279,9 @@
           }
         }
       }
+    },
+    "OK" : {
+      "shouldTranslate" : false
     },
     "one_shot" : {
       "comment" : "One Shot",
