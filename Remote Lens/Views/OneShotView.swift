@@ -7,42 +7,46 @@
 
 import SwiftUI
 
+struct TakePhotoOnPress: ButtonStyle {
+    @ObservedObject var bleManager: BluetoothManager
+    @Binding var isButtonPressed: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding()
+            .scaleEffect(configuration.isPressed ? 0.9 : 1)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { oldValue, newValue in
+                if newValue {
+                    // bleManager.takePhoto()
+                    bleManager.pressShutter()
+                    isButtonPressed = true
+                } else {
+                    bleManager.releaseShutter()
+                    isButtonPressed = false
+                }
+            }
+    }
+}
+
 struct OneShotView: View {
     @ObservedObject var bleManager: BluetoothManager
 
     @State private var isButtonPressed = false
-    @State private var hasTakenPhoto = false
 
     var body: some View {
         GeometryReader { geometry in
             VStack {
                 Spacer()
-                
-                Image(systemName: isButtonPressed ? "circle.fill" : "camera.aperture")
-                    .font(.system(size: geometry.size.width * 0.7))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { _ in
-                                if !hasTakenPhoto { // prevent bursting when draging the finger
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        isButtonPressed = true
-                                    }
-                                    bleManager.takePhoto()
-                                    hasTakenPhoto = true
-                                }
-                            }
-                            .onEnded { _ in
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    isButtonPressed = false
-                                }
-                                hasTakenPhoto = false
-                            }
-                    )
-                    .padding()
-                    .foregroundColor(.white)
-                
+
+                Button(action: {}) {
+                    Image(systemName: isButtonPressed ? "circle.fill" : "camera.aperture")
+                        .font(.system(size: geometry.size.width * 0.7))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+                .buttonStyle(TakePhotoOnPress(bleManager: bleManager, isButtonPressed: $isButtonPressed))
+
                 Spacer()
             }
         }

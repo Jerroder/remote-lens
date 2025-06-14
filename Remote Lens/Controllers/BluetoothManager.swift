@@ -12,6 +12,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var peripherals = [CBPeripheral]()
     @Published var connectedPeripheral: CBPeripheral?
     @Published var isConnected = false
+    @Published var isBluetoothEnabled = false
 
     private let handshakeService = "00010000-0000-1000-0000-D8492FffA821"
     private let startHandshakeCharacteristic = "00010006-0000-1000-0000-D8492FffA821"
@@ -41,8 +42,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn {
+            isBluetoothEnabled = true
             startScanningCycle()
         } else {
+            isBluetoothEnabled = false
             print("Bluetooth is not available.")
         }
     }

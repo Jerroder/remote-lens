@@ -37,6 +37,36 @@
         }
       }
     },
+    "bluetooth_disabled" : {
+      "comment" : "Bluetooth is disabled",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth ist deaktiviert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is disabled"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth está desactivado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth est désactivé"
+          }
+        }
+      }
+    },
     "disconnect" : {
       "comment" : "Disconnect",
       "extractionState" : "manual",

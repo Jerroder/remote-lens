@@ -13,7 +13,11 @@ struct ConnectionView: View {
     var body: some View {
         VStack {
             if bleManager.peripherals.isEmpty {
-                Text("no_devices_found".localized(comment: "No devices found"))
+                if bleManager.isBluetoothEnabled {
+                    Text("no_devices_found".localized(comment: "No devices found"))
+                } else {
+                    Text("bluetooth_disabled".localized(comment: "Bluetooth is disabled"))
+                }
             } else {
                 List(bleManager.peripherals, id: \.identifier) { peripheral in
                     Button(action: {
