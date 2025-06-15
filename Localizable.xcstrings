@@ -343,6 +343,12 @@
         }
       }
     },
+    "Playback" : {
+
+    },
+    "Shooting" : {
+
+    },
     "start" : {
       "comment" : "Start",
       "extractionState" : "manual",

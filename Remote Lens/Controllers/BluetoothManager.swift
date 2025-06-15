@@ -9,27 +9,39 @@ import CoreBluetooth
 import Foundation
 
 class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
-    @Published var peripherals = [CBPeripheral]()
+    @Published var peripherals: [CBPeripheral] = [CBPeripheral]()
     @Published var connectedPeripheral: CBPeripheral?
-    @Published var isConnected = false
-    @Published var isBluetoothEnabled = false
+    @Published var isConnected: Bool = false
+    @Published var isBluetoothEnabled: Bool = false
 
-    private let handshakeService = "00010000-0000-1000-0000-D8492FffA821"
-    private let startHandshakeCharacteristic = "00010006-0000-1000-0000-D8492FffA821"
-    private let endHandshakeCharacteristic = "0001000a-0000-1000-0000-D8492FffA821"
-    private let actuateShutterService = "00030000-0000-1000-0000-d8492fffa821"
-    private let actuateShutterCharacteristic = "00030030-0000-1000-0000-D8492FffA821"
+    private let handshakeService: String = "00010000-0000-1000-0000-D8492FffA821"
+    private let startHandshakeUUID: String = "00010006-0000-1000-0000-D8492FffA821"
+    private let endHandshakeUUID: String = "0001000a-0000-1000-0000-D8492FffA821"
+
+    private let actuateShutterService: String = "00030000-0000-1000-0000-d8492fffa821"
+    private let actuateShutterUUID: String = "00030030-0000-1000-0000-D8492FffA821"
+
+    private let modeService: String = "00030000-0000-1000-0000-d8492fffa821"
+    private let modeChangeUUID: String = "00030010-0000-1000-0000-d8492fffa821"
+    private let modeNotifyUUID: String = "00030011-0000-1000-0000-d8492fffa821"
+    private let playbackNavigationUUID: String = "00030020-0000-1000-0000-d8492fffa821"
+
     private let canonCompanyIdentifier: UInt16 = 0x01A9
 
-    private var discoveredPeripheralIDs = Set<UUID>()
+    private var discoveredPeripheralIDs: Set<UUID> = Set<UUID>()
     private var centralManager: CBCentralManager!
-    private var handshakeCharacteristic: CBCharacteristic?
-    private var confirmationCharacteristic: CBCharacteristic?
+
+    private var endHandshakeCharacteristic: CBCharacteristic?
+    private var confirmHandshakeCharacteristic: CBCharacteristic?
     private var shutterCharacteristic: CBCharacteristic?
+    private var modeChangeCharacteristic: CBCharacteristic?
+    private var modeNotifyCharacteristic: CBCharacteristic?
+    private var playbackNavigationCharacteristic: CBCharacteristic?
+
     private var scanTimer: Timer?
-    private var shouldScan = true
+    private var shouldScan: Bool = true
     private var lastConnectedPeripheralUUID: UUID?
-    private var isUserInitiatedDisconnect = false
+    private var isUserInitiatedDisconnect: Bool = false
 
     override init() {
         super.init()
@@ -126,7 +138,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
         let serviceUUIDs = [
                 CBUUID(string: handshakeService),
-                CBUUID(string: actuateShutterService)
+                CBUUID(string: actuateShutterService),
+                CBUUID(string: modeService)
             ]
 
         peripheral.discoverServices(serviceUUIDs)
@@ -147,27 +160,45 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
 
         print("Found service \(service.uuid)")
         for characteristic in characteristics {
-            if characteristic.uuid == CBUUID(string: startHandshakeCharacteristic) {
-                print("Found characteristic for camera confirmation")
-                let handshakeData = Data([0x01] + "iPhone 11 Pro".utf8) // @TODO: replace with prompted name
-                peripheral.writeValue(handshakeData, for: characteristic, type: .withResponse)
+            switch characteristic.uuid {
+                case CBUUID(string: startHandshakeUUID):
+                    print("Found characteristic for camera confirmation")
+                    let handshakeData = Data([0x01] + "iPhone 11 Pro".utf8)
+                    peripheral.writeValue(handshakeData, for: characteristic, type: .withResponse)
 
-                confirmationCharacteristic = characteristic
-                peripheral.setNotifyValue(true, for: confirmationCharacteristic!)
-            } else if characteristic.uuid == CBUUID(string: endHandshakeCharacteristic) {
-                print("Found characteristic for handshake")
-                handshakeCharacteristic = characteristic
-            } else if characteristic.uuid == CBUUID(string: actuateShutterCharacteristic) {
-                print("Found characteristic for shutter")
-                shutterCharacteristic = characteristic
-            } else {
-                print("Found characteristic \(characteristic.uuid)")
+                    confirmHandshakeCharacteristic = characteristic
+                    peripheral.setNotifyValue(true, for: confirmHandshakeCharacteristic!)
+
+                case CBUUID(string: endHandshakeUUID):
+                    print("Found characteristic for handshake")
+                    endHandshakeCharacteristic = characteristic
+
+                case CBUUID(string: actuateShutterUUID):
+                    print("Found characteristic for shutter")
+                    shutterCharacteristic = characteristic
+
+                case CBUUID(string: modeChangeUUID):
+                    print("Found characteristic for mode change")
+                    modeChangeCharacteristic = characteristic
+
+                case CBUUID(string: modeNotifyUUID):
+                    print("Found characteristic for mode change notification")
+                    modeNotifyCharacteristic = characteristic
+                    peripheral.setNotifyValue(true, for: modeNotifyCharacteristic!)
+
+                case CBUUID(string: playbackNavigationUUID):
+                    print("Found characteristic for playback navigation")
+                    playbackNavigationCharacteristic = characteristic
+
+                default:
+                    print("Found characteristic \(characteristic.uuid)")
             }
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        if characteristic.uuid == confirmationCharacteristic?.uuid {
+        print("didUpdateValueForCharacteristic \(characteristic.uuid)")
+        if characteristic.uuid == confirmHandshakeCharacteristic?.uuid {
             if let value = characteristic.value {
                 if value == Data([0x02]) {
                     print("User pressed OK. Ready to perform handshake.")
@@ -175,6 +206,16 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 } else if value == Data([0x03]) {
                     print("User pressed Cancel.")
                     centralManager.cancelPeripheralConnection(peripheral)
+                }
+            }
+        } else if characteristic.uuid == modeNotifyCharacteristic?.uuid {
+            if let value = characteristic.value {
+                if value == Data([0x04]) {
+                    print("shooting mode")
+                } else if value == Data([0x03]) {
+                    print("playback mode")
+                } else if value == Data([0x01]) {
+                    print("sleep")
                 }
             }
         }
@@ -194,7 +235,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
 
     func performHandshake(with peripheral: CBPeripheral) {
-        guard let characteristic = handshakeCharacteristic else {
+        guard let characteristic = endHandshakeCharacteristic else {
             print("Handshake characteristic not found.")
             return
         }
@@ -243,6 +284,26 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func takePhoto() {
         pressShutter()
         releaseShutter()
+    }
+    
+    func switchToPlayback() {
+        guard let modeChangeCharacteristic = modeChangeCharacteristic else {
+            print("Mode change characteristic not found.")
+            return
+        }
+
+        let releaseData = Data([0x01])
+        connectedPeripheral?.writeValue(releaseData, for: modeChangeCharacteristic, type: .withResponse)
+    }
+    
+    func switchToShooting() {
+        guard let modeChangeCharacteristic = modeChangeCharacteristic else {
+            print("Mode change characteristic not found.")
+            return
+        }
+
+        let releaseData = Data([0x02])
+        connectedPeripheral?.writeValue(releaseData, for: modeChangeCharacteristic, type: .withResponse)
     }
     
     func disconnect() {
