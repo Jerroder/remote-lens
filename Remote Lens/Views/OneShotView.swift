@@ -63,7 +63,6 @@ struct OneShotView: View {
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
 
     @State private var innerRadiusFactor: CGFloat = 0.5
-    @State private var isPressed = false
     @State private var decreaseTimer: Timer?
     @State private var increaseTimer: Timer?
     
@@ -75,15 +74,14 @@ struct OneShotView: View {
                     .onChange(of: isBurstMode) { oldValue, newValue in
                         UserDefaults.standard.set(newValue, forKey: "isBurstMode")
                     }
-                
+
                 Spacer()
-                
+
                 ZStack {
                     ShutterBlades(innerRadiusFactor: innerRadiusFactor)
-                        .stroke(Color.white, lineWidth: 3)
+                        .stroke(lineWidth: 3)
                         .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
-                    
-                    
+
                     Circle()
                         .fill(Color.clear)
                         .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
@@ -91,32 +89,26 @@ struct OneShotView: View {
                         .gesture(
                             DragGesture(minimumDistance: 0)
                                 .onChanged { _ in
-                                    if !isPressed {
-                                        isPressed = true
-                                        invalidateTimers()
-                                        startDecreaseAnimation()
-                                        if isBurstMode {
-                                            bleManager.pressShutter()
-                                        } else {
-                                            bleManager.takePhoto()
-                                        }
+                                    invalidateTimers()
+                                    startDecreaseAnimation()
+                                    if isBurstMode {
+                                        bleManager.pressShutter()
+                                    } else {
+                                        bleManager.takePhoto()
                                     }
                                 }
                                 .onEnded { _ in
-                                    if isPressed {
-                                        isPressed = false
-                                        invalidateTimers()
-                                        startIncreaseAnimation()
-                                        if isBurstMode {
-                                            bleManager.releaseShutter()
-                                        }
+                                    invalidateTimers()
+                                    startIncreaseAnimation()
+                                    if isBurstMode {
+                                        bleManager.releaseShutter()
                                     }
                                 }
                         )
                 }
-                
+
                 Spacer()
-                
+
                 HStack {
                     Button(action: {
                         bleManager.switchToShooting()
@@ -132,12 +124,12 @@ struct OneShotView: View {
             }
         }
     }
-    
+
     func invalidateTimers() {
         decreaseTimer?.invalidate()
         increaseTimer?.invalidate()
     }
-    
+
     func startDecreaseAnimation() {
         decreaseTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
             withAnimation {
@@ -149,7 +141,7 @@ struct OneShotView: View {
             }
         }
     }
-    
+
     func startIncreaseAnimation() {
         increaseTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
             withAnimation {
