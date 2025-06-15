@@ -68,13 +68,14 @@ struct IntervalometerView: View {
                     .onChange(of: exposureTime) { _, _ in
                         UserDefaults.standard.set(exposureTime, forKey: exposureTimeKey)
                     }
-                
+
                 Button(action: {
                     showingInfoAlert = true
                 }) {
                     Image(systemName: "info.circle")
                         .foregroundColor(.gray)
                 }
+                .buttonStyle(PlainButtonStyle())
                 .alert(isPresented: $showingInfoAlert) {
                     Alert(
                         title: Text("Info"),
