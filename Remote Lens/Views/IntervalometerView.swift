@@ -102,15 +102,15 @@ struct IntervalometerView: View {
                 Spacer()
             }
         }
-        // Throws an error for some reason
-//        .toolbar {
-//            ToolbarItemGroup(placement: .keyboard) {
-//                Spacer()
-//                Button("done".localized(comment: "Done")) {
-//                    focusedField = nil
-//                }
-//            }
-//        }
+        .scrollDisabled(true)
+        .toolbar { // Throws an error for some reason, but it works
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("done".localized(comment: "Done")) {
+                    focusedField = nil
+                }
+            }
+        }
     }
 
     func startIntervalometer() {

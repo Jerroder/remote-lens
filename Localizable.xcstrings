@@ -67,6 +67,36 @@
         }
       }
     },
+    "burst_mode" : {
+      "comment" : "Burst Mode",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serienbildmodus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Burst mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo ráfaga"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode rafale"
+          }
+        }
+      }
+    },
     "disconnect" : {
       "comment" : "Disconnect",
       "extractionState" : "manual",
@@ -133,26 +163,26 @@
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Wenn die belichtungszeit auf 0 eingestellt ist, muss sie an der kamera eingestellt werden.\nWenn sie nicht 0 ist, stellen Sie sicher, dass die kamera im Bulb-Modus ist."
+            "state" : "translated",
+            "value" : "Wenn die belichtungszeit auf 0 eingestellt ist,\nmuss sie an der kamera eingestellt werden.\n\nWenn sie nicht 0 ist, stellen Sie sicher,\ndass die kamera im Bulb-Modus ist."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If exposure time is set to 0, it must be set on camera.\nIf it’s not 0, ensure the camera is in bulb mode."
+            "value" : "If exposure time is set to 0,\nit must be set on camera.\n\nIf it’s not 0, ensure\nthe camera is in bulb mode."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Si el tiempo de exposición está establecido en 0, debe configurarse en la cámara.\nSi no es 0, asegúrese de que la cámara esté en modo bulbo."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Si la durée d'exposition est 0, elle doit être configurée sur l’appareil.\nSi elle n’est pas 0, veillez à ce que l’appareil soit en mode poses longues."
+            "state" : "translated",
+            "value" : "Si la durée d'exposition est 0,\nelle doit être configurée sur l’appareil.\n\nSi elle n’est pas 0, veillez à ce que\nl’appareil soit en mode poses longues."
           }
         }
       }

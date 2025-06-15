@@ -10,6 +10,7 @@ import SwiftUI
 struct TakePhotoOnPress: ButtonStyle {
     @ObservedObject var bleManager: BluetoothManager
     @Binding var isButtonPressed: Bool
+    @Binding var isBurstMode: Bool
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -18,11 +19,16 @@ struct TakePhotoOnPress: ButtonStyle {
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { oldValue, newValue in
                 if newValue {
-                    // bleManager.takePhoto()
-                    bleManager.pressShutter()
+                    if isBurstMode {
+                        bleManager.pressShutter()
+                    } else {
+                        bleManager.takePhoto()
+                    }
                     isButtonPressed = true
                 } else {
-                    bleManager.releaseShutter()
+                    if isBurstMode {
+                        bleManager.releaseShutter()
+                    }
                     isButtonPressed = false
                 }
             }
@@ -33,19 +39,28 @@ struct OneShotView: View {
     @ObservedObject var bleManager: BluetoothManager
 
     @State private var isButtonPressed = false
+    @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
 
     var body: some View {
         GeometryReader { geometry in
             VStack {
+                Toggle("burst_mode".localized(comment: "Burst mode"), isOn: $isBurstMode)
+                    .padding()
+                    .onChange(of: isBurstMode) { oldValue, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "isBurstMode")
+                    }
+
                 Spacer()
 
                 Button(action: {}) {
                     Image(systemName: isButtonPressed ? "circle.fill" : "camera.aperture")
-                        .font(.system(size: geometry.size.width * 0.7))
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: geometry.size.width * 0.7, height: geometry.size.width * 0.7)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
-                .buttonStyle(TakePhotoOnPress(bleManager: bleManager, isButtonPressed: $isButtonPressed))
+                .buttonStyle(TakePhotoOnPress(bleManager: bleManager, isButtonPressed: $isButtonPressed, isBurstMode: $isBurstMode))
 
                 Spacer()
             }
