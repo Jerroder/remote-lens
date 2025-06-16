@@ -132,24 +132,20 @@ struct OneShotView: View {
 
     func startDecreaseAnimation() {
         decreaseTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
-            withAnimation {
-                innerRadiusFactor -= 0.01
-                if innerRadiusFactor <= 0 {
-                    innerRadiusFactor = 0
-                    invalidateTimers()
-                }
+            innerRadiusFactor -= 0.01
+            if innerRadiusFactor <= 0 {
+                innerRadiusFactor = 0
+                invalidateTimers()
             }
         }
     }
 
     func startIncreaseAnimation() {
         increaseTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
-            withAnimation {
-                innerRadiusFactor += 0.01
-                if innerRadiusFactor >= 0.5 {
-                    innerRadiusFactor = 0.5
-                    invalidateTimers()
-                }
+            innerRadiusFactor += 0.01
+            if innerRadiusFactor >= 0.5 {
+                innerRadiusFactor = 0.5
+                invalidateTimers()
             }
         }
     }
