@@ -171,6 +171,7 @@ struct ConcentricCirclesView: View {
         .onReceive(animationTimer) { _ in
             guard !isWaiting else {
                 withAnimation(.easeInOut(duration: 1.5)) {
+                    opacityValues[2] = 0.1
                 }
                 return
             }
@@ -204,9 +205,8 @@ struct OneShotView: View {
     @State private var increaseTimer: Timer?
     
     @State private var isPressed: Bool = false
-    
-    @State private var currentTranslation: CGSize = .zero
     @State private var isSwiping: Bool = false
+    @State private var hasBeenPressed: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -270,9 +270,11 @@ struct OneShotView: View {
                                 .gesture(
                                     DragGesture(minimumDistance: 50, coordinateSpace: .local)
                                         .onChanged { value in
-                                            currentTranslation = value.translation
+                                            withAnimation {
+                                                hasBeenPressed = true
+                                            }
+
                                             let horizontalSwipe = abs(value.translation.width) > abs(value.translation.height)
-                                            
                                             if horizontalSwipe {
                                                 if value.translation.width < 0 {
                                                     if !isSwiping {
@@ -305,10 +307,15 @@ struct OneShotView: View {
                                 )
                                 .onTapGesture {
                                     bleManager.pressNavigationButton(button: BluetoothManager.Buttons.middle)
+                                    withAnimation {
+                                        hasBeenPressed = true
+                                    }
                                 }
                             
-                            AnimatedArrowheads()
-                            ConcentricCirclesView()
+                            if !hasBeenPressed {
+                                AnimatedArrowheads()
+                                ConcentricCirclesView()
+                            }
                         } /* ZStack */
                     } /* VStack */
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
