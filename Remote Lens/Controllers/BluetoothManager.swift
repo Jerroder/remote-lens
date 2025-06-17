@@ -9,13 +9,15 @@ import CoreBluetooth
 import Foundation
 
 class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
-    enum Button {
+    enum Buttons {
         case middle
         case right
         case left
         case up
         case down
         case back
+        case zoomIn
+        case zoomOut
     }
 
     @Published var peripherals: [CBPeripheral] = [CBPeripheral]()
@@ -343,7 +345,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         centralManager.cancelPeripheralConnection(peripheral)
     }
     
-    func pressNavigationButton(button: Button) {
+    func pressNavigationButton(button: Buttons) {
         guard let playbackNavigationCharacteristic = playbackNavigationCharacteristic else {
             print("Shutter characteristic not found.")
             return
@@ -370,6 +372,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         case .back:
             pressButtonData = Data([0x20, 0x00, 0x00, 0xc0])
             releaseButtonData = Data([0x20, 0x00, 0x00, 0x40])
+        case .zoomIn:
+            pressButtonData = Data([0x40, 0x00, 0x00, 0x80])
+            releaseButtonData = Data([0x40, 0x00, 0x00, 0x40])
+        case .zoomOut:
+            pressButtonData = Data([0x80, 0x00, 0x00, 0x80])
+            releaseButtonData = Data([0x80, 0x00, 0x00, 0x40])
         }
         
         connectedPeripheral?.writeValue(pressButtonData, for: playbackNavigationCharacteristic, type: .withResponse)

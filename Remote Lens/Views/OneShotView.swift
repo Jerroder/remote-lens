@@ -56,6 +56,143 @@ struct ShutterBlades: Shape {
     }
 }
 
+struct Arrowhead: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        
+        let leftPoint = CGPoint(x: rect.minX, y: rect.maxY)
+        let topPoint = CGPoint(x: rect.midX, y: rect.minY)
+        let rightPoint = CGPoint(x: rect.maxX, y: rect.maxY)
+        
+        path.move(to: leftPoint)
+        path.addLine(to: topPoint)
+        path.move(to: rightPoint)
+        path.addLine(to: topPoint)
+        
+        return path
+    }
+}
+
+struct AnimatedArrowheads: View {
+    @State private var opacityValues: [Double] = [0.1, 0.1, 0.1]
+    @State private var currentIndex = 2
+    @State private var isWaiting = false
+    
+    let animationTimer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
+    let waitTimer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            
+            ZStack {
+                ForEach(0..<4) { i in
+                    VStack(spacing: 8) {
+                        ForEach(0..<3) { index in
+                            Arrowhead()
+                                .stroke(lineWidth: 2)
+                                .frame(width: 30, height: 8)
+                                .opacity(self.opacityValues[index])
+                        }
+                    }
+                    .rotationEffect(self.rotationAngleForIndex(i))
+                    .position(self.positionForIndex(i, center: center))
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .frame(width: 200, height: 200)
+        .onReceive(animationTimer) { _ in
+            guard !isWaiting else {
+                withAnimation(.easeInOut(duration: 1.5)) {
+                    opacityValues[0] = 0.1
+                }
+                return
+            }
+            withAnimation(.easeInOut(duration: 1.5)) {
+                opacityValues = [0.1, 0.1, 0.1]
+                
+                opacityValues[currentIndex] = 1
+                
+                currentIndex = (currentIndex - 1 + 3) % 3
+                
+                if currentIndex == 2 {
+                    isWaiting = true
+                }
+            }
+        }
+        .onReceive(waitTimer) { _ in
+            guard isWaiting else { return }
+            isWaiting = false
+        }
+    }
+    
+    func rotationAngleForIndex(_ index: Int) -> Angle {
+        return Angle(degrees: Double(index) * 90)
+    }
+    
+    func positionForIndex(_ index: Int, center: CGPoint) -> CGPoint {
+        let hOffset: CGFloat = 115
+        let vOffset: CGFloat = 140
+        
+        switch index {
+        case 0: // Top
+            return CGPoint(x: center.x, y: center.y - vOffset)
+        case 1: // Right
+            return CGPoint(x: center.x + hOffset, y: center.y)
+        case 2: // Bottom
+            return CGPoint(x: center.x, y: center.y + vOffset)
+        case 3: // Left
+            return CGPoint(x: center.x - hOffset, y: center.y)
+        default:
+            return center
+        }
+    }
+}
+
+struct ConcentricCirclesView: View {
+    @State private var opacityValues: [Double] = [0.1, 0.1, 0.1]
+    @State private var currentIndex = 0
+    @State private var isWaiting = false
+    
+    let animationTimer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
+    let waitTimer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
+    
+    var body: some View {
+        ZStack {
+            ForEach(0..<3) { index in
+                Circle()
+                    .stroke(lineWidth: 2)
+                    .frame(width: 10 + CGFloat(index) * 15, height: 10 + CGFloat(index) * 15)
+                    .opacity(opacityValues[index])
+            }
+        }
+        .frame(width: 150, height: 150)
+        .onReceive(animationTimer) { _ in
+            guard !isWaiting else {
+                withAnimation(.easeInOut(duration: 1.5)) {
+                }
+                return
+            }
+            withAnimation(.easeInOut(duration: 1.5)) {
+                opacityValues = [0.1, 0.1, 0.1]
+                
+                opacityValues[currentIndex] = 1
+                
+                currentIndex = (currentIndex + 1) % 3
+                
+                if currentIndex == 0 {
+                    isWaiting = true
+                }
+            }
+        }
+        .onReceive(waitTimer) { _ in
+            guard isWaiting else { return }
+            isWaiting = false
+        }
+    }
+}
+
 struct OneShotView: View {
     @ObservedObject var bleManager: BluetoothManager
     
@@ -67,6 +204,9 @@ struct OneShotView: View {
     @State private var increaseTimer: Timer?
     
     @State private var isPressed: Bool = false
+    
+    @State private var currentTranslation: CGSize = .zero
+    @State private var isSwiping: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -113,58 +253,100 @@ struct OneShotView: View {
                                             isPressed = false
                                         }
                                 )
+                        } /* ZStack */
+                        
+                        Spacer()
+                    } /* VStack */
+                } else {
+                    VStack {
+                        Spacer()
+                        
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(UIColor.secondarySystemBackground), lineWidth: 3)
+                                .background(Color.clear)
+                                .contentShape(Rectangle())
+                                .padding()
+                                .gesture(
+                                    DragGesture(minimumDistance: 50, coordinateSpace: .local)
+                                        .onChanged { value in
+                                            currentTranslation = value.translation
+                                            let horizontalSwipe = abs(value.translation.width) > abs(value.translation.height)
+                                            
+                                            if horizontalSwipe {
+                                                if value.translation.width < 0 {
+                                                    if !isSwiping {
+                                                        isSwiping = true
+                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.left)
+                                                    }
+                                                } else if value.translation.width > 0 {
+                                                    if !isSwiping {
+                                                        isSwiping = true
+                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.right)
+                                                    }
+                                                }
+                                            } else {
+                                                if value.translation.height < 0 {
+                                                    if !isSwiping {
+                                                        isSwiping = true
+                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.up)
+                                                    }
+                                                } else if value.translation.height > 0 {
+                                                    if !isSwiping {
+                                                        isSwiping = true
+                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.down)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        .onEnded { value in
+                                            isSwiping = false
+                                        }
+                                )
+                                .onTapGesture {
+                                    bleManager.pressNavigationButton(button: BluetoothManager.Buttons.middle)
+                                }
+                            
+                            AnimatedArrowheads()
+                            ConcentricCirclesView()
+                        } /* ZStack */
+                    } /* VStack */
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                } /* if */
+                
+                HStack {
+                    if bleManager.isShootingMode {
+                        Spacer()
+                    } else {
+                        Button(action: {
+                            bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomOut)
+                        }) {
+                            Image(systemName: "minus.magnifyingglass")
+                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                .padding()
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .foregroundColor(Color(UIColor.label))
+                                .cornerRadius(10)
                         }
+                        .padding()
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomIn)
+                        }) {
+                            Image(systemName: "plus.magnifyingglass")
+                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                .padding()
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .foregroundColor(Color(UIColor.label))
+                                .cornerRadius(10)
+                        }
+                        .padding()
                         
                         Spacer()
                     }
-                } else {
-                    let imageSize = geometry.size.width * 0.25
-                    VStack {
-                        Button(action: {
-                            bleManager.pressNavigationButton(button: BluetoothManager.Button.up)
-                        }) {
-                            Image(systemName: "arrowtriangle.up")
-                                .foregroundColor(Color(UIColor.label))
-                                .font(.system(size: imageSize, weight: .thin))
-                        }
-                        
-                        HStack {
-                            Button(action: {
-                                bleManager.pressNavigationButton(button: BluetoothManager.Button.left)
-                            }) {
-                                Image(systemName: "arrowtriangle.left")
-                                    .foregroundColor(Color(UIColor.label))
-                                    .font(.system(size: imageSize, weight: .thin))
-                            }
-                            Button(action: {
-                                bleManager.pressNavigationButton(button: BluetoothManager.Button.middle)
-                            }) {
-                                Image(systemName: "circle")
-                                    .foregroundColor(Color(UIColor.label))
-                                    .font(.system(size: imageSize, weight: .thin))
-                            }
-                            Button(action: {
-                                bleManager.pressNavigationButton(button: BluetoothManager.Button.right)
-                            }) {
-                                Image(systemName: "arrowtriangle.right")
-                                    .foregroundColor(Color(UIColor.label))
-                                    .font(.system(size: imageSize, weight: .thin))
-                            }
-                        }.padding()
-                        
-                        Button(action: {
-                            bleManager.pressNavigationButton(button: BluetoothManager.Button.down)
-                        }) {
-                            Image(systemName: "arrowtriangle.down")
-                                .foregroundColor(Color(UIColor.label))
-                                .font(.system(size: imageSize, weight: .thin))
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                }
-
-                HStack {
-                    Spacer()
+                    
                     Button(action: {
                         bleManager.switchMode()
                     }) {
@@ -176,9 +358,9 @@ struct OneShotView: View {
                             .cornerRadius(10)
                     }
                     .padding()
-                }
-            }
-        }
+                } /* HStack */
+            } /* VStack */
+        } /* GeometryReader */
     }
     
     private func invalidateTimers() {
@@ -206,4 +388,3 @@ struct OneShotView: View {
         }
     }
 }
-
