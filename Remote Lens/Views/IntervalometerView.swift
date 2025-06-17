@@ -11,9 +11,9 @@ struct IntervalometerView: View {
     private enum Field: Int, CaseIterable {
         case numberOfPhotos, waitBetweenPhotos, exposureTime
     }
-
+    
     @ObservedObject var bleManager: BluetoothManager
-
+    
     @State private var numberOfPhotos: Int
     @State private var waitBetweenPhotos: Double
     @State private var exposureTime: Double
@@ -21,20 +21,20 @@ struct IntervalometerView: View {
     @State private var showingInfoAlert: Bool = false
     
     @FocusState private var focusedField: Field?
-
+    
     private let numberOfPhotosKey: String = "numberOfPhotos"
     private let waitBetweenPhotosKey: String = "waitBetweenPhotos"
     private let exposureTimeKey: String = "exposureTime"
-
+    
     init(bleManager: BluetoothManager) {
         self.bleManager = bleManager
-
+        
         let defaults = UserDefaults.standard
         self._numberOfPhotos = State(initialValue: defaults.integer(forKey: numberOfPhotosKey))
         self._waitBetweenPhotos = State(initialValue: defaults.double(forKey: waitBetweenPhotosKey))
         self._exposureTime = State(initialValue: defaults.double(forKey: exposureTimeKey))
     }
-
+    
     var body: some View {
         Form {
             HStack {
@@ -47,7 +47,7 @@ struct IntervalometerView: View {
                         UserDefaults.standard.set(numberOfPhotos, forKey: numberOfPhotosKey)
                     }
             }
-
+            
             HStack {
                 Text("wait_between_photos".localized(comment: "Wait between photos"))
                     .frame(width: 170, alignment: .leading)
@@ -58,7 +58,7 @@ struct IntervalometerView: View {
                         UserDefaults.standard.set(waitBetweenPhotos, forKey: waitBetweenPhotosKey)
                     }
             }
-
+            
             HStack {
                 Text("exposure_time".localized(comment: "Exposure time"))
                     .frame(width: 170, alignment: .leading)
@@ -68,12 +68,12 @@ struct IntervalometerView: View {
                     .onChange(of: exposureTime) { _, _ in
                         UserDefaults.standard.set(exposureTime, forKey: exposureTimeKey)
                     }
-
+                
                 Button(action: {
                     showingInfoAlert = true
                 }) {
                     Image(systemName: "info.circle")
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(UIColor.systemGray))
                 }
                 .buttonStyle(PlainButtonStyle())
                 .alert(isPresented: $showingInfoAlert) {
@@ -84,10 +84,10 @@ struct IntervalometerView: View {
                     )
                 }
             }
-
+            
             HStack {
                 Spacer()
-
+                
                 Button(action: {
                     if self.isRunning {
                         self.isRunning = false
@@ -99,7 +99,7 @@ struct IntervalometerView: View {
                 }) {
                     Text(isRunning ? "stop".localized(comment: "Stop") : "start".localized(comment: "Start"))
                 }
-
+                
                 Spacer()
             }
         }
@@ -113,30 +113,30 @@ struct IntervalometerView: View {
             }
         }
     }
-
-    func startIntervalometer() {
+    
+    private func startIntervalometer() {
         DispatchQueue.global(qos: .userInitiated).async {
             for i in 0..<numberOfPhotos {
                 if !self.isRunning {
                     break
                 }
-
+                
                 DispatchQueue.main.async {
                     self.bleManager.takePhoto()
                 }
-
+                
                 if exposureTime > 0 {
                     Thread.sleep(forTimeInterval: exposureTime)
                     DispatchQueue.main.async {
                         self.bleManager.takePhoto()
                     }
                 }
-
+                
                 if i < numberOfPhotos - 1 && self.isRunning {
                     Thread.sleep(forTimeInterval: waitBetweenPhotos)
                 }
             }
-
+            
             DispatchQueue.main.async {
                 self.isRunning = false
             }

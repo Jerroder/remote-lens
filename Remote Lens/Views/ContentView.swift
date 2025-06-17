@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var bleManager = BluetoothManager()
-
+    
     var body: some View {
         NavigationStack {
             if bleManager.isConnected {
@@ -18,7 +18,7 @@ struct ContentView: View {
                         Image(systemName: "camera")
                         Text("one_shot".localized(comment: "One Shot"))
                     }
-
+                    
                     IntervalometerView(bleManager: bleManager).tabItem {
                         Image(systemName: "timer")
                         Text("intervalometer".localized(comment: "Intervalometer"))
