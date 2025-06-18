@@ -91,7 +91,7 @@ struct AnimatedArrowheads: View {
                         ForEach(0..<3) { index in
                             Arrowhead()
                                 .stroke(lineWidth: 2)
-                                .frame(width: 30, height: 8)
+                                .frame(width: 20 + CGFloat(index) * 3, height: 8)
                                 .opacity(self.opacityValues[index])
                         }
                     }

@@ -188,6 +188,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 print("Found characteristic for handshake")
                 endHandshakeCharacteristic = characteristic
                 
+                // Needed so that notifications work after reconnection
                 if isReconnecting, let endHandshakeCharacteristic = endHandshakeCharacteristic {
                     let finishHandshakeData = Data([0x01])
                     peripheral.writeValue(finishHandshakeData, for: endHandshakeCharacteristic, type: .withResponse)
