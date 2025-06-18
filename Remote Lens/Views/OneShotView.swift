@@ -208,6 +208,8 @@ struct OneShotView: View {
     @State private var isSwiping: Bool = false
     @State private var hasBeenPressed: Bool = false
     
+    @State private var initialTouchPosition: CGSize = .zero
+    
     var body: some View {
         GeometryReader { geometry in
             VStack {
@@ -232,24 +234,34 @@ struct OneShotView: View {
                                 .contentShape(Circle())
                                 .gesture(
                                     DragGesture(minimumDistance: 0)
-                                        .onChanged { _ in
-                                            invalidateTimers()
-                                            startDecreaseAnimation()
+                                        .onChanged { value in
+                                            if initialTouchPosition == .zero {
+                                                initialTouchPosition = value.translation
+                                            }
                                             
-                                            if !isPressed && !isBurstMode {
-                                                isPressed = true
-                                                bleManager.takePhoto()
-                                            } else if !isPressed && isBurstMode {
-                                                bleManager.pressShutter()
+                                            // Check if the finger has moved significantly
+                                            let translation = value.translation
+                                            let deltaX = abs(translation.width - initialTouchPosition.width)
+                                            let deltaY = abs(translation.height - initialTouchPosition.height)
+                                            
+                                            if deltaX < 1 && deltaY < 1 {
+                                                if !isPressed && !isBurstMode {
+                                                    isPressed = true
+                                                    bleManager.takePhoto()
+                                                } else if !isPressed && isBurstMode {
+                                                    bleManager.pressShutter()
+                                                }
+                                                invalidateTimers()
+                                                startDecreaseAnimation()
                                             }
                                         }
                                         .onEnded { _ in
-                                            invalidateTimers()
-                                            startIncreaseAnimation()
-                                            
                                             if isBurstMode {
                                                 bleManager.releaseShutter()
                                             }
+                                            invalidateTimers()
+                                            startIncreaseAnimation()
+                                            initialTouchPosition = .zero
                                             isPressed = false
                                         }
                                 )
