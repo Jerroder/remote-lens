@@ -97,6 +97,36 @@
         }
       }
     },
+    "could_not_autofocus" : {
+      "comment" : "Could not autofocus",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konnte nicht automatisch fokussieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not autofocus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No pudo enfocar automáticamente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "N’a pas pu faire la mise au point"
+          }
+        }
+      }
+    },
     "disconnect" : {
       "comment" : "Disconnect",
       "extractionState" : "manual",

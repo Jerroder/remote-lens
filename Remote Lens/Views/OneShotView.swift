@@ -366,6 +366,10 @@ struct OneShotView: View {
                         Spacer()
                     }
                     
+                    Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
+                        .fontWeight(.bold)
+                        .foregroundColor(.red)
+                    
                     Button(action: {
                         bleManager.switchMode()
                     }) {

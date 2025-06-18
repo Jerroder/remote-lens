@@ -25,6 +25,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var isConnected: Bool = false
     @Published var isBluetoothEnabled: Bool = false
     @Published var isShootingMode: Bool = true
+    @Published var hasAutofocusFailed: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string : "00010000-0000-1000-0000-D8492FffA821")
     private let startHandshakeUUID: CBUUID = CBUUID(string : "00010006-0000-1000-0000-D8492FffA821")
@@ -37,6 +38,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private let modeChangeUUID: CBUUID = CBUUID(string : "00030010-0000-1000-0000-d8492fffa821")
     private let modeNotifyUUID: CBUUID = CBUUID(string : "00030011-0000-1000-0000-d8492fffa821")
     private let playbackNavigationUUID: CBUUID = CBUUID(string : "00030020-0000-1000-0000-d8492fffa821")
+    private let autofocusNotifiyUUID: CBUUID = CBUUID(string: "00030031-0000-1000-0000-d8492fffa821")
     
     private let canonCompanyIdentifier: UInt16 = 0x01A9
     
@@ -49,6 +51,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var modeChangeCharacteristic: CBCharacteristic?
     private var modeNotifyCharacteristic: CBCharacteristic?
     private var playbackNavigationCharacteristic: CBCharacteristic?
+    private var autofocusNavigationCharacteristic: CBCharacteristic?
     
     private var scanTimer: Timer?
     private var shouldScan: Bool = true
@@ -212,6 +215,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 print("Found characteristic for playback navigation")
                 playbackNavigationCharacteristic = characteristic
                 
+            case autofocusNotifiyUUID:
+                print("Fond characteristic for autofocus notification")
+                autofocusNavigationCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: autofocusNavigationCharacteristic!)
+                
             default:
                 print("Found characteristic \(characteristic.uuid)")
             }
@@ -240,6 +248,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     isShootingMode = false
                 } else if value == Data([0x01]) {
                     isShootingMode = true
+                }
+            }
+        } else if characteristic.uuid == autofocusNavigationCharacteristic?.uuid {
+            if let value = characteristic.value {
+                if value == Data([0x01, 0x01, 0x01]) {
+                    hasAutofocusFailed = true
                 }
             }
         }
@@ -288,6 +302,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             print("Shutter characteristic not found.")
             return
         }
+        
+        hasAutofocusFailed = false
         
         let pressData = Data([0x00, 0x01])
         connectedPeripheral?.writeValue(pressData, for: shutterCharacteristic, type: .withResponse)
