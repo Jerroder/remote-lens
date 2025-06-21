@@ -26,8 +26,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var isBluetoothEnabled: Bool = false
     @Published var isShootingMode: Bool = true
     @Published var hasAutofocusFailed: Bool = false
-    @Published var isGeotagginCapable: Bool = false // unused for now
-    @Published var isGeotagginEnabled: Bool = false
+    @Published var isGPSEnabledOnCamera: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string : "00010000-0000-1000-0000-D8492FffA821")
     private let startHandshakeUUID: CBUUID = CBUUID(string : "00010006-0000-1000-0000-D8492FffA821")
@@ -60,6 +59,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var autofocusNavigationCharacteristic: CBCharacteristic?
     private var geotagDataCharacteristic: CBCharacteristic?
     private var confirmGeotagCharacteristic: CBCharacteristic?
+    private var unknownCharacteristic: CBCharacteristic?
     
     private var scanTimer: Timer?
     private var shouldScan: Bool = true
@@ -240,6 +240,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 
             case CBUUID(string: "00040001-0000-1000-0000-D8492FFFA821"):
                 print("Found 00040001-0000-1000-0000-D8492FFFA821")
+                unknownCharacteristic = characteristic
                 peripheral.setNotifyValue(true, for: characteristic)
                 
             default:
@@ -290,9 +291,9 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     let confirmGeotagData = Data([0x01])
                     connectedPeripheral?.writeValue(confirmGeotagData, for: geotagDataCharacteristic!, type: .withResponse)
                 } else if value == Data([0x02]) {
-                    isGeotagginCapable = true
+                    isGPSEnabledOnCamera = true
                 } else if value == Data([0x01]) {
-                    isGeotagginCapable = false
+                    isGPSEnabledOnCamera = false
                 } else {
                     print("Value not recognized for confirmGeotagCharacteristic: \(value)")
                 }
@@ -305,15 +306,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
     }
     
-    func writeGPSValue(data: Data) {
-        guard let geotagDataCharacteristic = geotagDataCharacteristic else {
-            print("Geotagging characteristic not found or not enabled on camera")
-            return
-        }
-        
-        connectedPeripheral?.writeValue(data, for: geotagDataCharacteristic, type: .withResponse)
-    }
-    
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
         
@@ -323,6 +315,19 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         shouldScan = true
         startScanningCycle()
+    }
+    
+    func queryCameraForGPSStatus() {
+        connectedPeripheral?.readValue(for: confirmGeotagCharacteristic!)
+    }
+    
+    func writeGPSValue(data: Data) {
+        guard let geotagDataCharacteristic = geotagDataCharacteristic else {
+            print("Geotagging characteristic not found or not enabled on camera")
+            return
+        }
+        
+        connectedPeripheral?.writeValue(data, for: geotagDataCharacteristic, type: .withResponse)
     }
     
     private func performHandshake(with peripheral: CBPeripheral) {

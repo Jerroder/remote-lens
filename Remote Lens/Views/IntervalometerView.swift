@@ -13,27 +13,21 @@ struct IntervalometerView: View {
     }
     
     @ObservedObject var bleManager: BluetoothManager
+    @ObservedObject var locationManager: LocationManager
+    @Binding var showGeotagSheet: Bool
     
-    @State private var numberOfPhotos: Int
-    @State private var waitBetweenPhotos: Double
-    @State private var exposureTime: Double
+    @State private var numberOfPhotos: Int = UserDefaults.standard.integer(forKey: "numberOfPhotos")
+    @State private var waitBetweenPhotos: Double = UserDefaults.standard.double(forKey: "waitBetweenPhotos")
+    @State private var exposureTime: Double = UserDefaults.standard.double(forKey: "exposureTime")
     @State private var isRunning: Bool = false
     @State private var showingInfoAlert: Bool = false
+    @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
     
     @FocusState private var focusedField: Field?
     
     private let numberOfPhotosKey: String = "numberOfPhotos"
     private let waitBetweenPhotosKey: String = "waitBetweenPhotos"
     private let exposureTimeKey: String = "exposureTime"
-    
-    init(bleManager: BluetoothManager) {
-        self.bleManager = bleManager
-        
-        let defaults = UserDefaults.standard
-        self._numberOfPhotos = State(initialValue: defaults.integer(forKey: numberOfPhotosKey))
-        self._waitBetweenPhotos = State(initialValue: defaults.double(forKey: waitBetweenPhotosKey))
-        self._exposureTime = State(initialValue: defaults.double(forKey: exposureTimeKey))
-    }
     
     var body: some View {
         Form {
@@ -111,6 +105,9 @@ struct IntervalometerView: View {
                     focusedField = nil
                 }
             }
+        }
+        .sheet(isPresented: $showGeotagSheet) {
+            GeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, showGeotagSheet: $showGeotagSheet)
         }
     } /* View */
     

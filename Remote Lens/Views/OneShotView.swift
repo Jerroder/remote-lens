@@ -71,7 +71,7 @@ struct OneShotView: View {
     @State private var isPressed: Bool = false
     @State private var isSwiping: Bool = false
     @State private var hasBeenPressed: Bool = false
-    @State private var selectedOption: Int8 = 0
+    @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
     
     @State private var initialTouchPosition: CGSize = .zero
     
@@ -136,16 +136,6 @@ struct OneShotView: View {
                         
                         Spacer()
                     } /* VStack */
-                    .alert(isPresented: $locationManager.showGPSDeniedAlert) {
-                        Alert(
-                            title: Text("location_access_denied".localized(comment: "Location access denied")),
-                            message: Text("location_access_denied_text".localized(comment: "Please enable location access in settings.")),
-                            primaryButton: .default(Text("settings".localized(comment: "Settings"))) {
-                                openSettings()
-                            },
-                            secondaryButton: .default(Text("close".localized(comment: "Close")))
-                        )
-                    }
                     .sheet(isPresented: $showGeotagSheet) {
                         GeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, showGeotagSheet: $showGeotagSheet)
                     }
@@ -246,7 +236,7 @@ struct OneShotView: View {
                         Spacer()
                     }
                     
-                    if bleManager.isGeotagginEnabled {
+                    if locationManager.isGeotagginEnabled {
                         Button(action: {
                             bleManager.writeGPSValue(data: locationManager.getGPSData())
                         }) {
@@ -264,9 +254,11 @@ struct OneShotView: View {
                         Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
                             .fontWeight(.bold)
                             .foregroundColor(.red)
-                        Text((locationManager.lastLocation == nil) ? "no_gps_data".localized(comment: "No GPS data") : "")
-                            .fontWeight(.bold)
-                            .foregroundColor(.red)
+                        if locationManager.isGeotagginEnabled {
+                            Text((locationManager.lastLocation == nil) ? "no_gps_data".localized(comment: "No GPS data") : "")
+                                .fontWeight(.bold)
+                                .foregroundColor(.red)
+                        }
                     }
                     
                     Button(action: {

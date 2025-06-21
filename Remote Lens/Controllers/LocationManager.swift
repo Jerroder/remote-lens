@@ -1,5 +1,5 @@
 //
-//  LocationController.swift
+//  LocationManager.swift
 //  Remote Lens
 //
 //  Created by Jerroder on 2025-06-21.
@@ -13,6 +13,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var lastLocation: CLLocation?
     @Published var elevation: CLLocationDistance?
     
+    @Published var isGeotagginEnabled: Bool = false
     @Published var showGPSDeniedAlert: Bool = false
     
     private let locationManager = CLLocationManager()
@@ -38,16 +39,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationStatus = status
     }
     
-    func requestSingleLocationUpdate() {
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Failed to find user's location: \(error.localizedDescription)")
+    }
+    
+    private func requestSingleLocationUpdate() {
         if isUpdatingLocation {
             locationManager.stopUpdatingLocation()
             isUpdatingLocation = false
         }
         locationManager.requestLocation()
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Failed to find user's location: \(error.localizedDescription)")
     }
     
     private func floatToData(_ value: Float) -> Data {
@@ -57,7 +58,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
-    func getLocationAndElevation() -> (latitude: Data?, longitude: Data?, elevation: Data?) {
+    private func getLocationAndElevation() -> (latitude: Data?, longitude: Data?, elevation: Data?) {
         guard let location = lastLocation else {
             print("Location data is not available.")
             return (nil, nil, nil)

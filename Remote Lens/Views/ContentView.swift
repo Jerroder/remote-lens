@@ -17,14 +17,18 @@ struct ContentView: View {
         NavigationStack {
             if bleManager.isConnected {
                 TabView {
-                    OneShotView(bleManager: bleManager, locationManager: locationManager, showGeotagSheet: $showGeotagSheet).tabItem {
-                        Image(systemName: "camera")
-                        Text("one_shot".localized(comment: "One Shot"))
+                    NavigationStack {
+                        OneShotView(bleManager: bleManager, locationManager: locationManager, showGeotagSheet: $showGeotagSheet)
+                    }
+                    .tabItem {
+                        Label("one_shot".localized(comment: "One Shot"), systemImage: "camera")
                     }
                     
-                    IntervalometerView(bleManager: bleManager).tabItem {
-                        Image(systemName: "timer")
-                        Text("intervalometer".localized(comment: "Intervalometer"))
+                    NavigationStack {
+                        IntervalometerView(bleManager: bleManager, locationManager: locationManager, showGeotagSheet: $showGeotagSheet)
+                    }
+                    .tabItem {
+                        Label("intervalometer".localized(comment: "Intervalometer"), systemImage: "timer")
                     }
                 }
                 .navigationTitle(bleManager.connectedPeripheral?.name ?? "unknown_device".localized(comment: "Unknown Device"))
