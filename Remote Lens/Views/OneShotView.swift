@@ -71,7 +71,6 @@ struct OneShotView: View {
     @State private var isPressed: Bool = false
     @State private var isSwiping: Bool = false
     @State private var hasBeenPressed: Bool = false
-    @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
     
     @State private var initialTouchPosition: CGSize = .zero
     
@@ -136,9 +135,6 @@ struct OneShotView: View {
                         
                         Spacer()
                     } /* VStack */
-                    .sheet(isPresented: $showGeotagSheet) {
-                        GeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, showGeotagSheet: $showGeotagSheet)
-                    }
                 } else {
                     VStack {
                         Spacer()
@@ -205,7 +201,21 @@ struct OneShotView: View {
                 
                 HStack {
                     if bleManager.isShootingMode {
-                        Spacer()
+                        if bleManager.hasAutofocusFailed || locationManager.isGeotagginEnabled {
+                            Spacer()
+                            VStack {
+                                Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.red)
+                                if locationManager.isGeotagginEnabled {
+                                    Text(locationManager.isLoading ? "no_gps_data".localized(comment: "No GPS data") : "")
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.red)
+                                }
+                            }
+                        } else {
+                            Spacer()
+                        }
                     } else {
                         Button(action: {
                             bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomOut)
@@ -236,30 +246,19 @@ struct OneShotView: View {
                         Spacer()
                     }
                     
-                    if locationManager.isGeotagginEnabled {
-                        Button(action: {
-                            bleManager.writeGPSValue(data: locationManager.getGPSData())
-                        }) {
-                            Image(systemName: "location.square.fill")
-                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                                .padding()
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .foregroundColor(Color(UIColor.label))
-                                .cornerRadius(10)
-                        }
-                        .padding()
-                    }
-                    
-                    VStack {
-                        Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
-                            .fontWeight(.bold)
-                            .foregroundColor(.red)
-                        if locationManager.isGeotagginEnabled {
-                            Text((locationManager.lastLocation == nil) ? "no_gps_data".localized(comment: "No GPS data") : "")
-                                .fontWeight(.bold)
-                                .foregroundColor(.red)
-                        }
-                    }
+//                    if locationManager.isGeotagginEnabled {
+//                        Button(action: {
+//                            bleManager.writeGPSValue(data: locationManager.getGPSData())
+//                        }) {
+//                            Image(systemName: "location.square.fill")
+//                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+//                                .padding()
+//                                .background(Color(UIColor.secondarySystemBackground))
+//                                .foregroundColor(Color(UIColor.label))
+//                                .cornerRadius(10)
+//                        }
+//                        .padding()
+//                    }
                     
                     Button(action: {
                         bleManager.switchMode()

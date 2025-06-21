@@ -10,29 +10,37 @@ import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var locationStatus: CLAuthorizationStatus?
-    @Published var lastLocation: CLLocation?
-    @Published var elevation: CLLocationDistance?
+    @Published var locationDataReceived = false
+    @Published var isLoading = true
     
     @Published var isGeotagginEnabled: Bool = false
     @Published var showGPSDeniedAlert: Bool = false
     
     private let locationManager = CLLocationManager()
     
-    private var isUpdatingLocation = false
+    private var locationUpdateCompletion: ((CLLocationCoordinate2D?, CLLocationDistance?) -> Void)?
+
+    // private var isUpdatingLocation = false
     
     override init() {
         super.init()
         self.locationManager.delegate = self
         self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
         self.locationManager.requestWhenInUseAuthorization()
-        self.locationManager.startUpdatingLocation()
-        isUpdatingLocation = true
+//        self.locationManager.startUpdatingLocation()
+//        isUpdatingLocation = true
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        lastLocation = location
-        elevation = location.altitude
+        guard let location = locations.last else {
+            locationUpdateCompletion?(nil, nil)
+            return
+        }
+//        lastLocation = location
+//        elevation = location.altitude
+        locationUpdateCompletion?(location.coordinate, location.altitude)
+        locationDataReceived = true
+        isLoading = false
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
@@ -41,56 +49,18 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Failed to find user's location: \(error.localizedDescription)")
+        locationUpdateCompletion?(nil, nil)
     }
     
-    private func requestSingleLocationUpdate() {
-        if isUpdatingLocation {
-            locationManager.stopUpdatingLocation()
-            isUpdatingLocation = false
-        }
+    func requestSingleLocationUpdate(completion: @escaping (CLLocationCoordinate2D?, CLLocationDistance?) -> Void) {
+//        if isUpdatingLocation {
+//            locationManager.stopUpdatingLocation()
+//            isUpdatingLocation = false
+//        }
+        isLoading = true
+        locationDataReceived = false
+        locationUpdateCompletion = completion
         locationManager.requestLocation()
-    }
-    
-    private func floatToData(_ value: Float) -> Data {
-        var floatValue = value
-        return withUnsafePointer(to: &floatValue) {
-            Data(bytes: $0, count: MemoryLayout<Float>.size)
-        }
-    }
-    
-    private func getLocationAndElevation() -> (latitude: Data?, longitude: Data?, elevation: Data?) {
-        guard let location = lastLocation else {
-            print("Location data is not available.")
-            return (nil, nil, nil)
-        }
-        
-        let latitude = Float(location.coordinate.latitude)
-        let longitude = Float(location.coordinate.longitude)
-        let elevation = Float(location.altitude)
-        
-        var dataLatitude = floatToData(latitude)
-        var dataLongitude = floatToData(longitude)
-        var dataElevation = floatToData(elevation)
-        
-        if latitude >= 0 {
-            dataLatitude.insert(0x4E, at: 0)
-        } else {
-            dataLatitude.insert(0x53, at: 0)
-        }
-        
-        if longitude >= 0 {
-            dataLongitude.insert(0x45, at: 0)
-        } else {
-            dataLongitude.insert(0x57, at: 0)
-        }
-        
-        if elevation >= 0 {
-            dataElevation.insert(0x2B, at: 0)
-        } else {
-            dataElevation.insert(0x2D, at: 0)
-        }
-        
-        return (dataLatitude, dataLongitude, dataElevation)
     }
     
     private func getCurrentUTCUnixEpochTimeAsData() -> Data {
@@ -104,28 +74,45 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         return timeData
     }
     
-    func getGPSData() -> Data {
-        requestSingleLocationUpdate()
-        
-        var data: Data = Data([0x04])
-        if lastLocation != nil {
-            let (dataLatitude, dataLongitude, dataElevation) = getLocationAndElevation()
+    func getGPSData(completion: @escaping (Data) -> Void) {
+        requestSingleLocationUpdate { coordinate, altitude in
             
-            data.append(dataLatitude!)
-            data.append(dataLongitude!)
-            data.append(dataElevation!)
-        } else {
-            if let status = locationStatus {
-                if status == .denied {
-                    showGPSDeniedAlert = true
+            var data: Data = Data([0x04])
+            if let coordinate = coordinate, let altitude = altitude {
+                data.append(withUnsafeBytes(of: Float(coordinate.latitude)) { Data($0) })
+                data.append(withUnsafeBytes(of: Float(coordinate.longitude)) { Data($0) })
+                data.append(withUnsafeBytes(of: Float(altitude)) { Data($0) })
+                
+                if coordinate.latitude >= 0 {
+                    data.insert(0x4E, at: 1)
+                } else {
+                    data.insert(0x53, at: 1)
                 }
+                
+                if coordinate.longitude >= 0 {
+                    data.insert(0x45, at: 6)
+                } else {
+                    data.insert(0x57, at: 6)
+                }
+                
+                if altitude >= 0 {
+                    data.insert(0x2B, at: 11)
+                } else {
+                    data.insert(0x2D, at: 11)
+                }
+            } else {
+                if let status = self.locationStatus {
+                    if status == .denied {
+                        self.showGPSDeniedAlert = true
+                    }
+                }
+                data.append(Data(count: 15))
             }
-            data.append(Data(count: 15))
+            
+            let dateData: Data = self.getCurrentUTCUnixEpochTimeAsData()
+            data.append(dateData)
+            
+            completion(data)
         }
-        
-        let dateData: Data = getCurrentUTCUnixEpochTimeAsData()
-        data.append(dateData)
-        
-        return data
     }
 }

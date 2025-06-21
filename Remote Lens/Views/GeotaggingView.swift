@@ -67,7 +67,9 @@ struct GeotaggingView: View {
                         Text(!bleManager.isGPSEnabledOnCamera ? "gps_not_enabled".localized(comment: "GPS not enabled on camera, please enable or re-enable it") : "")
                         
                         Button(action: {
-                            bleManager.writeGPSValue(data: locationManager.getGPSData())
+                            locationManager.getGPSData { data in
+                                bleManager.writeGPSValue(data: data)
+                            }
                         }) {
                             Text("send_gps_to_camera".localized(comment: "Send to camera"))
                         }
@@ -75,7 +77,7 @@ struct GeotaggingView: View {
                         .background(Color(UIColor.secondarySystemBackground))
                         .cornerRadius(10)
                         
-                        Text((locationManager.lastLocation == nil) ? "no_gps_data".localized(comment: "No GPS data") : "")
+                        Text(locationManager.isLoading ? "no_gps_data".localized(comment: "No GPS data") : "")
                             .fontWeight(.bold)
                             .foregroundColor(.red)
                     }

@@ -21,7 +21,6 @@ struct IntervalometerView: View {
     @State private var exposureTime: Double = UserDefaults.standard.double(forKey: "exposureTime")
     @State private var isRunning: Bool = false
     @State private var showingInfoAlert: Bool = false
-    @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
     
     @FocusState private var focusedField: Field?
     
@@ -105,9 +104,6 @@ struct IntervalometerView: View {
                     focusedField = nil
                 }
             }
-        }
-        .sheet(isPresented: $showGeotagSheet) {
-            GeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, showGeotagSheet: $showGeotagSheet)
         }
     } /* View */
     

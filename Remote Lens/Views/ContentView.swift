@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var bleManager = BluetoothManager()
     @StateObject private var locationManager = LocationManager()
     
+    @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
     @State private var showGeotagSheet: Bool = false
     
     var body: some View {
@@ -52,6 +53,9 @@ struct ContentView: View {
                             Image(systemName: "ellipsis.circle")
                         }
                     }
+                }
+                .sheet(isPresented: $showGeotagSheet) {
+                    GeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, showGeotagSheet: $showGeotagSheet)
                 }
             } else {
                 ConnectionView(bleManager: bleManager)
