@@ -210,6 +210,8 @@ struct OneShotView: View {
     
     @State private var initialTouchPosition: CGSize = .zero
     
+    @State private var hexFields: [String] = Array(repeating: "", count: 16)
+    
     var body: some View {
         GeometryReader { geometry in
             VStack {
@@ -285,7 +287,7 @@ struct OneShotView: View {
                                             withAnimation {
                                                 hasBeenPressed = true
                                             }
-
+                                            
                                             let horizontalSwipe = abs(value.translation.width) > abs(value.translation.height)
                                             if horizontalSwipe {
                                                 if value.translation.width < 0 {
@@ -366,6 +368,18 @@ struct OneShotView: View {
                         Spacer()
                     }
                     
+                    Button(action: {
+                        bleManager.sendGPS()
+                    }) {
+                        Image(systemName: "location.square.fill")
+                            .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .foregroundColor(Color(UIColor.label))
+                            .cornerRadius(10)
+                    }
+                    .padding()
+                    
                     Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
                         .fontWeight(.bold)
                         .foregroundColor(.red)
@@ -384,7 +398,64 @@ struct OneShotView: View {
                 } /* HStack */
             } /* VStack */
         } /* GeometryReader */
+    } /* body */
+        
+/*      VStack {
+            hexTextFields
+            submitButton
+        }
     }
+    
+    private func processHexValues() {
+        let nonEmptyHexValues = hexFields.filter { !$0.isEmpty }
+        
+        // Convert each hex string to a byte (UInt8)
+        var byteArray = [UInt8]()
+        for hexString in nonEmptyHexValues {
+            if let byte = UInt8(hexString, radix: 16) {
+                byteArray.append(byte)
+            } else {
+                print("Invalid hex string: \(hexString)")
+                // Handle invalid hex string
+                return
+            }
+        }
+        
+        // Create Data object
+        let data = Data(byteArray)
+        
+        // Send data using CoreBluetooth
+        bleManager.sendGPS(data)
+    }
+    
+    private var hexTextFields: some View {
+        List {
+            ForEach(0..<16) { index in
+                TextField("Hex Value \(index + 1)", text: Binding(
+                    get: { self.hexFields[index] },
+                    set: { self.hexFields[index] = $0.uppercased() }
+                ))
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .keyboardType(.asciiCapable)
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    private var submitButton: some View {
+        Button(action: {
+            processHexValues()
+        }) {
+            Text("Submit")
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+        .padding()
+    }
+ */
+
     
     private func invalidateTimers() {
         decreaseTimer?.invalidate()
