@@ -102,7 +102,7 @@ struct IntervalometerView: View {
                 
                 Spacer()
             }
-        }
+        } /* Form */
         .scrollDisabled(true)
         .toolbar { // Throws an error for some reason, but it works
             ToolbarItemGroup(placement: .keyboard) {
@@ -112,7 +112,7 @@ struct IntervalometerView: View {
                 }
             }
         }
-    }
+    } /* View */
     
     private func startIntervalometer() {
         DispatchQueue.global(qos: .userInitiated).async {

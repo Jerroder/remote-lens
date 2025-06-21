@@ -26,8 +26,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var isBluetoothEnabled: Bool = false
     @Published var isShootingMode: Bool = true
     @Published var hasAutofocusFailed: Bool = false
-    
-    private var locationManager = LocationManager()
+    @Published var isGeotagginCapable: Bool = false // unused for now
+    @Published var isGeotagginEnabled: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string : "00010000-0000-1000-0000-D8492FffA821")
     private let startHandshakeUUID: CBUUID = CBUUID(string : "00010006-0000-1000-0000-D8492FffA821")
@@ -66,7 +66,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var lastConnectedPeripheralUUID: UUID?
     private var hasUserInitiatedDisconnect: Bool = false
     private var isReconnecting: Bool = false
-    private var isGeotaggingEnabled: Bool = false
     
     override init() {
         super.init()
@@ -261,6 +260,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 } else if value == Data([0x03]) {
                     print("User pressed Cancel.")
                     centralManager.cancelPeripheralConnection(peripheral)
+                } else {
+                    print("Value not recognized for confirmHandshakeCharacteristic: \(value)")
                 }
             }
         } else if characteristic.uuid == modeNotifyCharacteristic?.uuid {
@@ -271,12 +272,16 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     isShootingMode = false
                 } else if value == Data([0x01]) {
                     isShootingMode = true
+                } else {
+                    print("Value not recognized for modeNotifyCharacteristic: \(value)")
                 }
             }
         } else if characteristic.uuid == autofocusNavigationCharacteristic?.uuid {
             if let value = characteristic.value {
                 if value == Data([0x01, 0x01, 0x01]) {
                     hasAutofocusFailed = true
+                } else {
+                    print("Value not recognizedfor autofocusNavigationCharacteristic: \(value)")
                 }
             }
         } else if characteristic.uuid == confirmGeotagCharacteristic?.uuid {
@@ -285,54 +290,26 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     let confirmGeotagData = Data([0x01])
                     connectedPeripheral?.writeValue(confirmGeotagData, for: geotagDataCharacteristic!, type: .withResponse)
                 } else if value == Data([0x02]) {
-                    isGeotaggingEnabled = true
+                    isGeotagginCapable = true
                 } else if value == Data([0x01]) {
-                    isGeotaggingEnabled = false
+                    isGeotagginCapable = false
+                } else {
+                    print("Value not recognized for confirmGeotagCharacteristic: \(value)")
                 }
             }
         } else if characteristic.uuid == CBUUID(string: "00040001-0000-1000-0000-D8492FFFA821") {
             if let value = characteristic.value {
                 let hexString = value.map { String(format: "%02hhx", $0) }.joined()
-                print("Hex value: \(hexString)")
+                print("Value not recognized for 00040001-0000-1000-0000-D8492FFFA821: \(hexString)")
             }
         }
     }
     
-    private func getCurrentUTCUnixEpochTimeAsData() -> Data {
-        let currentDate = Date()
-        let unixEpochTime = Int32(currentDate.timeIntervalSince1970)
-        
-        // Convert the Int32 to a Data object
-        var timeValue = unixEpochTime
-        let timeData = withUnsafeBytes(of: &timeValue) { Data($0) }
-        
-        return timeData
-    }
-    
-    func sendGPS() {
+    func writeGPSValue(data: Data) {
         guard let geotagDataCharacteristic = geotagDataCharacteristic else {
-            print("Geotagging characteristic not found.")
+            print("Geotagging characteristic not found or not enabled on camera")
             return
         }
-        
-        var data: Data = Data([0x04])
-        if locationManager.lastLocation != nil {
-            let (dataLatitude, dataLongitude, dataElevation) = locationManager.getLocationAndElevation()
-            
-            data.append(dataLatitude!)
-            data.append(dataLongitude!)
-            data.append(dataElevation!)
-        } else {
-            if let status = locationManager.locationStatus {
-                if status == .denied {
-                    print("Location access denied.")
-                }
-            }
-            data.append(Data(count: 15))
-        }
-        
-        let dateData: Data = getCurrentUTCUnixEpochTimeAsData()
-        data.append(dateData)
         
         connectedPeripheral?.writeValue(data, for: geotagDataCharacteristic, type: .withResponse)
     }

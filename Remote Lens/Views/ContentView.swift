@@ -9,12 +9,15 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var bleManager = BluetoothManager()
+    @StateObject private var locationManager = LocationManager()
+    
+    @State private var showGeotagSheet: Bool = false
     
     var body: some View {
         NavigationStack {
             if bleManager.isConnected {
                 TabView {
-                    OneShotView(bleManager: bleManager).tabItem {
+                    OneShotView(bleManager: bleManager, locationManager: locationManager, showGeotagSheet: $showGeotagSheet).tabItem {
                         Image(systemName: "camera")
                         Text("one_shot".localized(comment: "One Shot"))
                     }
@@ -32,6 +35,14 @@ struct ContentView: View {
                                 bleManager.disconnect()
                             }) {
                                 Label("disconnect".localized(comment: "Disconnect"), systemImage: "wifi.slash")
+                            }
+                            
+                            Divider()
+                            
+                            Button(action: {
+                                showGeotagSheet.toggle()
+                            }) {
+                                Label("geotagging".localized(comment: "Geotagging"), systemImage: "location")
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle")

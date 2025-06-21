@@ -56,146 +56,10 @@ struct ShutterBlades: Shape {
     }
 }
 
-struct Arrowhead: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        
-        let leftPoint = CGPoint(x: rect.minX, y: rect.maxY)
-        let topPoint = CGPoint(x: rect.midX, y: rect.minY)
-        let rightPoint = CGPoint(x: rect.maxX, y: rect.maxY)
-        
-        path.move(to: leftPoint)
-        path.addLine(to: topPoint)
-        path.move(to: rightPoint)
-        path.addLine(to: topPoint)
-        
-        return path
-    }
-}
-
-struct AnimatedArrowheads: View {
-    @State private var opacityValues: [Double] = [0.1, 0.1, 0.1]
-    @State private var currentIndex = 2
-    @State private var isWaiting = false
-    
-    let animationTimer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
-    let waitTimer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
-    
-    var body: some View {
-        GeometryReader { geometry in
-            let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
-            
-            ZStack {
-                ForEach(0..<4) { i in
-                    VStack(spacing: 8) {
-                        ForEach(0..<3) { index in
-                            Arrowhead()
-                                .stroke(lineWidth: 2)
-                                .frame(width: 20 + CGFloat(index) * 3, height: 8)
-                                .opacity(self.opacityValues[index])
-                        }
-                    }
-                    .rotationEffect(self.rotationAngleForIndex(i))
-                    .position(self.positionForIndex(i, center: center))
-                }
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-        }
-        .frame(width: 200, height: 200)
-        .onReceive(animationTimer) { _ in
-            guard !isWaiting else {
-                withAnimation(.easeInOut(duration: 1.5)) {
-                    opacityValues[0] = 0.1
-                }
-                return
-            }
-            withAnimation(.easeInOut(duration: 1.5)) {
-                opacityValues = [0.1, 0.1, 0.1]
-                
-                opacityValues[currentIndex] = 1
-                
-                currentIndex = (currentIndex - 1 + 3) % 3
-                
-                if currentIndex == 2 {
-                    isWaiting = true
-                }
-            }
-        }
-        .onReceive(waitTimer) { _ in
-            guard isWaiting else { return }
-            isWaiting = false
-        }
-    }
-    
-    func rotationAngleForIndex(_ index: Int) -> Angle {
-        return Angle(degrees: Double(index) * 90)
-    }
-    
-    func positionForIndex(_ index: Int, center: CGPoint) -> CGPoint {
-        let hOffset: CGFloat = 115
-        let vOffset: CGFloat = 140
-        
-        switch index {
-        case 0: // Top
-            return CGPoint(x: center.x, y: center.y - vOffset)
-        case 1: // Right
-            return CGPoint(x: center.x + hOffset, y: center.y)
-        case 2: // Bottom
-            return CGPoint(x: center.x, y: center.y + vOffset)
-        case 3: // Left
-            return CGPoint(x: center.x - hOffset, y: center.y)
-        default:
-            return center
-        }
-    }
-}
-
-struct ConcentricCirclesView: View {
-    @State private var opacityValues: [Double] = [0.1, 0.1, 0.1]
-    @State private var currentIndex = 0
-    @State private var isWaiting = false
-    
-    let animationTimer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
-    let waitTimer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
-    
-    var body: some View {
-        ZStack {
-            ForEach(0..<3) { index in
-                Circle()
-                    .stroke(lineWidth: 2)
-                    .frame(width: 10 + CGFloat(index) * 15, height: 10 + CGFloat(index) * 15)
-                    .opacity(opacityValues[index])
-            }
-        }
-        .frame(width: 150, height: 150)
-        .onReceive(animationTimer) { _ in
-            guard !isWaiting else {
-                withAnimation(.easeInOut(duration: 1.5)) {
-                    opacityValues[2] = 0.1
-                }
-                return
-            }
-            withAnimation(.easeInOut(duration: 1.5)) {
-                opacityValues = [0.1, 0.1, 0.1]
-                
-                opacityValues[currentIndex] = 1
-                
-                currentIndex = (currentIndex + 1) % 3
-                
-                if currentIndex == 0 {
-                    isWaiting = true
-                }
-            }
-        }
-        .onReceive(waitTimer) { _ in
-            guard isWaiting else { return }
-            isWaiting = false
-        }
-    }
-}
-
 struct OneShotView: View {
     @ObservedObject var bleManager: BluetoothManager
+    @ObservedObject var locationManager: LocationManager
+    @Binding var showGeotagSheet: Bool
     
     @State private var isButtonPressed = false
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
@@ -207,6 +71,7 @@ struct OneShotView: View {
     @State private var isPressed: Bool = false
     @State private var isSwiping: Bool = false
     @State private var hasBeenPressed: Bool = false
+    @State private var selectedOption: Int8 = 0
     
     @State private var initialTouchPosition: CGSize = .zero
     
@@ -271,6 +136,19 @@ struct OneShotView: View {
                         
                         Spacer()
                     } /* VStack */
+                    .alert(isPresented: $locationManager.showGPSDeniedAlert) {
+                        Alert(
+                            title: Text("location_access_denied".localized(comment: "Location access denied")),
+                            message: Text("location_access_denied_text".localized(comment: "Please enable location access in settings.")),
+                            primaryButton: .default(Text("settings".localized(comment: "Settings"))) {
+                                openSettings()
+                            },
+                            secondaryButton: .default(Text("close".localized(comment: "Close")))
+                        )
+                    }
+                    .sheet(isPresented: $showGeotagSheet) {
+                        GeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, showGeotagSheet: $showGeotagSheet)
+                    }
                 } else {
                     VStack {
                         Spacer()
@@ -327,7 +205,7 @@ struct OneShotView: View {
                                 }
                             
                             if !hasBeenPressed {
-                                AnimatedArrowheads()
+                                AnimatedArrowheadsView()
                                 ConcentricCirclesView()
                             }
                         } /* ZStack */
@@ -368,21 +246,28 @@ struct OneShotView: View {
                         Spacer()
                     }
                     
-                    Button(action: {
-                        bleManager.sendGPS()
-                    }) {
-                        Image(systemName: "location.square.fill")
-                            .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                            .padding()
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .foregroundColor(Color(UIColor.label))
-                            .cornerRadius(10)
+                    if bleManager.isGeotagginEnabled {
+                        Button(action: {
+                            bleManager.writeGPSValue(data: locationManager.getGPSData())
+                        }) {
+                            Image(systemName: "location.square.fill")
+                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                .padding()
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .foregroundColor(Color(UIColor.label))
+                                .cornerRadius(10)
+                        }
+                        .padding()
                     }
-                    .padding()
                     
-                    Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
-                        .fontWeight(.bold)
-                        .foregroundColor(.red)
+                    VStack {
+                        Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
+                            .fontWeight(.bold)
+                            .foregroundColor(.red)
+                        Text((locationManager.lastLocation == nil) ? "no_gps_data".localized(comment: "No GPS data") : "")
+                            .fontWeight(.bold)
+                            .foregroundColor(.red)
+                    }
                     
                     Button(action: {
                         bleManager.switchMode()
@@ -399,63 +284,12 @@ struct OneShotView: View {
             } /* VStack */
         } /* GeometryReader */
     } /* body */
-        
-/*      VStack {
-            hexTextFields
-            submitButton
-        }
-    }
     
-    private func processHexValues() {
-        let nonEmptyHexValues = hexFields.filter { !$0.isEmpty }
-        
-        // Convert each hex string to a byte (UInt8)
-        var byteArray = [UInt8]()
-        for hexString in nonEmptyHexValues {
-            if let byte = UInt8(hexString, radix: 16) {
-                byteArray.append(byte)
-            } else {
-                print("Invalid hex string: \(hexString)")
-                // Handle invalid hex string
-                return
-            }
-        }
-        
-        // Create Data object
-        let data = Data(byteArray)
-        
-        // Send data using CoreBluetooth
-        bleManager.sendGPS(data)
-    }
-    
-    private var hexTextFields: some View {
-        List {
-            ForEach(0..<16) { index in
-                TextField("Hex Value \(index + 1)", text: Binding(
-                    get: { self.hexFields[index] },
-                    set: { self.hexFields[index] = $0.uppercased() }
-                ))
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .keyboardType(.asciiCapable)
-                .padding(.horizontal)
-            }
+    private func openSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
         }
     }
-    
-    private var submitButton: some View {
-        Button(action: {
-            processHexValues()
-        }) {
-            Text("Submit")
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-        }
-        .padding()
-    }
- */
-
     
     private func invalidateTimers() {
         decreaseTimer?.invalidate()
