@@ -31,6 +31,8 @@ struct GeotaggingView: View {
                         UserDefaults.standard.set(selectedOption, forKey: "selectedOption")
                         
                         if newValue {
+                            let data: Data = Data([0x03])
+                            bleManager.writeGPSValue(data: data)
                             locationManager.isGeotagginEnabled = false
                         }
                     }
