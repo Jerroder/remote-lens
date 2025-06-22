@@ -276,12 +276,6 @@ struct OneShotView: View {
         } /* GeometryReader */
     } /* body */
     
-    private func openSettings() {
-        if let url = URL(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(url)
-        }
-    }
-    
     private func invalidateTimers() {
         decreaseTimer?.invalidate()
         increaseTimer?.invalidate()

@@ -97,6 +97,36 @@
         }
       }
     },
+    "close" : {
+      "comment" : "Closer",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schließen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer"
+          }
+        }
+      }
+    },
     "could_not_autofocus" : {
       "comment" : "Could not autofocus",
       "extractionState" : "manual",
@@ -123,6 +153,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "N’a pas pu faire la mise au point"
+          }
+        }
+      }
+    },
+    "couldnt_connect_to_camera" : {
+      "comment" : "Bluetooth connection issue",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t connect to the camera"
           }
         }
       }
@@ -247,8 +289,71 @@
         }
       }
     },
+    "geotagging" : {
+      "comment" : "Geotagging",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geotagging"
+          }
+        }
+      }
+    },
+    "geotagging_when_starting" : {
+      "comment" : "Get GPS coordinates once when the app starts",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get GPS coordinates once when the app starts"
+          }
+        }
+      }
+    },
+    "geotagging_when_triggering" : {
+      "comment" : "Get GPS coordinates every time a photo is taken",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get GPS coordinates every time a photo is taken"
+          }
+        }
+      }
+    },
+    "gps_data_sent" : {
+      "comment" : "GPS data sent to the camera",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPS data sent to the camera"
+          }
+        }
+      }
+    },
+    "gps_not_enabled" : {
+      "comment" : "GPS not enabled on camera",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPS not enabled on camera"
+          }
+        }
+      }
+    },
     "Info" : {
       "shouldTranslate" : false
+    },
+    "Interval" : {
+
     },
     "intervalometer" : {
       "comment" : "Intervalometer",
@@ -280,6 +385,78 @@
         }
       }
     },
+    "location_access_denied" : {
+      "comment" : "Location access denied",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standortzugriff verweigert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location access denied"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acceso a la ubicación denegado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès à la position refusé"
+          }
+        }
+      }
+    },
+    "location_access_denied_text" : {
+      "comment" : "Please enable location access in settings",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um diese Funktion zu nutzen, aktivieren Sie bitte den Standortzugriff in den Einstellungen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To use this feature, please enable location access in settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para usar esta función, active el acceso a la ubicación en la configuración."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour utiliser cette fonction, activez l'accès à la localisation dans les paramètres."
+          }
+        }
+      }
+    },
+    "manual_geotagging" : {
+      "comment" : "Get GPS data manually",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get GPS data manually"
+          }
+        }
+      }
+    },
     "no_devices_found" : {
       "comment" : "No devices found",
       "extractionState" : "manual",
@@ -306,6 +483,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucun appareil trouvé"
+          }
+        }
+      }
+    },
+    "no_geotagging" : {
+      "comment" : "No geotagging",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No geotagging"
           }
         }
       }
@@ -369,6 +558,84 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photo Unique"
+          }
+        }
+      }
+    },
+    "remove_from_camera_menu_text" : {
+      "comment" : "Please remove this iPhone from your camera’s list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please remove this iPhone from your camera’s paired devices list and try connecting again."
+          }
+        }
+      }
+    },
+    "remove_from_iphone_menu_text" : {
+      "comment" : "Please remove the camera from your iPhone's list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please remove the camera from your iPhone's paired devices list and try connecting again."
+          }
+        }
+      }
+    },
+    "select_an_option" : {
+      "comment" : "Select an Option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select an Option"
+          }
+        }
+      }
+    },
+    "send_gps_to_camera" : {
+      "comment" : "Send GPS data to camera",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send GPS data to camera"
+          }
+        }
+      }
+    },
+    "settings" : {
+      "comment" : "Settings",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages"
           }
         }
       }
@@ -463,6 +730,9 @@
         }
       }
     },
+    "Wait for GPS to get a fix before taking the photo" : {
+
+    },
     "wait_between_photos" : {
       "comment" : "Wait between photos",
       "extractionState" : "manual",
@@ -489,6 +759,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Attente entre les photos"
+          }
+        }
+      }
+    },
+    "waiting_for_gps" : {
+      "comment" : "Waiting for GPS fix",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for GPS fix…"
           }
         }
       }

@@ -19,7 +19,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         case zoomIn
         case zoomOut
     }
-
+    
     @Published var peripherals: [CBPeripheral] = [CBPeripheral]()
     @Published var connectedPeripheral: CBPeripheral?
     @Published var isConnected: Bool = false
@@ -27,6 +27,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var isShootingMode: Bool = true
     @Published var hasAutofocusFailed: Bool = false
     @Published var isGPSEnabledOnCamera: Bool = false
+    @Published var warnRemoveFromCameraMenu: Bool = false
+    @Published var warnRemoveFromiPhoneMenu: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string : "00010000-0000-1000-0000-D8492FffA821")
     private let startHandshakeUUID: CBUUID = CBUUID(string : "00010006-0000-1000-0000-D8492FffA821")
@@ -151,8 +153,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         connectedPeripheral = peripheral
         connectedPeripheral?.delegate = self
-        
-        lastConnectedPeripheralUUID = peripheral.identifier
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -169,6 +169,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             geotagService
         ]
         
+        lastConnectedPeripheralUUID = peripheral.identifier
         peripheral.discoverServices(serviceUUIDs)
         UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "lastConnectedPeripheralUUID")
         hasUserInitiatedDisconnect = false
@@ -225,7 +226,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 playbackNavigationCharacteristic = characteristic
                 
             case autofocusNotifiyUUID:
-                print("Fond characteristic for autofocus notification")
+                print("Found characteristic for autofocus notification")
                 autofocusNavigationCharacteristic = characteristic
                 peripheral.setNotifyValue(true, for: autofocusNavigationCharacteristic!)
                 
@@ -309,8 +310,31 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
         
+        // Happens when the camera is deleted from the iPhone's known devices list
+        if let error = error as? CBError, error.code == CBError.peripheralDisconnected {
+            warnRemoveFromCameraMenu = true
+            
+            lastConnectedPeripheralUUID = nil
+            UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
+        }
+        
         DispatchQueue.main.async {
             self.isConnected = false
+        }
+        
+        shouldScan = true
+        startScanningCycle()
+    }
+    
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("Failed to connect to peripheral: \(peripheral.name ?? "Unknown")")
+        
+        // Happens when the iPhone is deleted from the camera's known devices list
+        if let error = error as? CBError, error.code == CBError.peerRemovedPairingInformation {
+            warnRemoveFromiPhoneMenu = true
+            
+            lastConnectedPeripheralUUID = nil
+            UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
         }
         
         shouldScan = true
@@ -417,6 +441,9 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             print("No connected peripheral to disconnect from.")
             return
         }
+        
+        lastConnectedPeripheralUUID = nil
+        UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
         
         hasUserInitiatedDisconnect = true
         centralManager.cancelPeripheralConnection(peripheral)

@@ -6,12 +6,12 @@
 //
 
 import CoreLocation
-import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var locationDataReceived = false
-    @Published var isLoading = true
+    @Published var isLoading = false
+    @Published var isLocationServiceEnabled = false
     
     @Published var isGeotagginEnabled: Bool = false
     @Published var showGPSDeniedAlert: Bool = false
@@ -52,7 +52,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationUpdateCompletion?(nil, nil)
     }
     
-    func requestSingleLocationUpdate(completion: @escaping (CLLocationCoordinate2D?, CLLocationDistance?) -> Void) {
+    private func requestSingleLocationUpdate(completion: @escaping (CLLocationCoordinate2D?, CLLocationDistance?) -> Void) {
 //        if isUpdatingLocation {
 //            locationManager.stopUpdatingLocation()
 //            isUpdatingLocation = false
@@ -72,6 +72,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         let timeData = withUnsafeBytes(of: &timeValue) { Data($0) }
         
         return timeData
+    }
+    
+    func updateLocationServiceStatus() {
+        if locationStatus == .denied {
+            isLocationServiceEnabled = false
+        } else {
+            isLocationServiceEnabled = true
+        }
     }
     
     func getGPSData(completion: @escaping (Data) -> Void) {
@@ -104,6 +112,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 if let status = self.locationStatus {
                     if status == .denied {
                         self.showGPSDeniedAlert = true
+                        self.isLocationServiceEnabled = false
                     }
                 }
                 data.append(Data(count: 15))

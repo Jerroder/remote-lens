@@ -69,12 +69,10 @@ struct IntervalometerView: View {
                         .foregroundColor(Color(UIColor.systemGray))
                 }
                 .buttonStyle(PlainButtonStyle())
-                .alert(isPresented: $showingInfoAlert) {
-                    Alert(
-                        title: Text("Info"),
-                        message: Text("exposure_info_text".localized(comment: "If exposure is set to 0")),
-                        dismissButton: .default(Text("OK"))
-                    )
+                .alert("Info", isPresented: $showingInfoAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("exposure_info_text".localized(comment: "If exposure is set to 0"))
                 }
             }
             

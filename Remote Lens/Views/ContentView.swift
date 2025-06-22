@@ -60,6 +60,16 @@ struct ContentView: View {
             } else {
                 ConnectionView(bleManager: bleManager)
             }
+        } /* NavigationStack */
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnRemoveFromiPhoneMenu) {
+            Button("close".localized(comment: "Close"), role: .cancel) { }
+        } message: {
+            Text("remove_from_iphone_menu_text".localized(comment: "Please remove the camera from your iPhone's list"))
+        }
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnRemoveFromCameraMenu) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("remove_from_camera_menu_text".localized(comment: "Please remove this iPhone from your camera’s list"))
         }
     }
 }
