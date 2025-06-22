@@ -62,11 +62,10 @@ struct ContentView: View {
             }
         } /* NavigationStack */
         .overlay(
-            // Popup overlay
             Group {
                 if bleManager.isPairing {
                     VStack {
-                        Text("pairing_please_wait".localized(comment: "Pairing, please wait..."))
+                        Text("connecting_please_wait".localized(comment: "Connecting, please wait..."))
                             .padding()
                             .background(Color(UIColor.secondarySystemBackground))
                             .cornerRadius(10)

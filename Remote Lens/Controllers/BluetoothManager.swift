@@ -324,6 +324,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             
             lastConnectedPeripheralUUID = nil
             UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
+            
+            DispatchQueue.main.async {
+                self.isPairing = false
+            }
         }
         
         DispatchQueue.main.async {
@@ -343,6 +347,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             
             lastConnectedPeripheralUUID = nil
             UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
+            
+            DispatchQueue.main.async {
+                self.isPairing = false
+            }
         }
         
         shouldScan = true
@@ -449,9 +457,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             print("No connected peripheral to disconnect from.")
             return
         }
-        
-        lastConnectedPeripheralUUID = nil
-        UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
         
         hasUserInitiatedDisconnect = true
         centralManager.cancelPeripheralConnection(peripheral)

@@ -127,6 +127,18 @@
         }
       }
     },
+    "connecting_please_wait" : {
+      "comment" : "Connecting, please wait...",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting, please wait..."
+          }
+        }
+      }
+    },
     "could_not_autofocus" : {
       "comment" : "Could not autofocus",
       "extractionState" : "manual",
@@ -561,21 +573,6 @@
           }
         }
       }
-    },
-    "pairing_please_wait" : {
-      "comment" : "Pairing, please wait...",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pairing, please wait..."
-          }
-        }
-      }
-    },
-    "Pairing, please wait..." : {
-
     },
     "remove_from_camera_menu_text" : {
       "comment" : "Please remove this iPhone from your camera’s list",
