@@ -217,7 +217,6 @@ struct GeotaggingView: View {
             }
         } /* NavigationStack */
         .onAppear{
-            bleManager.queryCameraForGPSStatus()
             locationManager.updateLocationServiceStatus()
         }
     }

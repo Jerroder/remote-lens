@@ -562,6 +562,21 @@
         }
       }
     },
+    "pairing_please_wait" : {
+      "comment" : "Pairing, please wait...",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing, please wait..."
+          }
+        }
+      }
+    },
+    "Pairing, please wait..." : {
+
+    },
     "remove_from_camera_menu_text" : {
       "comment" : "Please remove this iPhone from your camera’s list",
       "extractionState" : "manual",

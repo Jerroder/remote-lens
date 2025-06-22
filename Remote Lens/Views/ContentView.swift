@@ -61,6 +61,22 @@ struct ContentView: View {
                 ConnectionView(bleManager: bleManager)
             }
         } /* NavigationStack */
+        .overlay(
+            // Popup overlay
+            Group {
+                if bleManager.isPairing {
+                    VStack {
+                        Text("pairing_please_wait".localized(comment: "Pairing, please wait..."))
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(10)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemBackground).opacity(0.5))
+                    .edgesIgnoringSafeArea(.all)
+                }
+            }
+        )
         .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnRemoveFromiPhoneMenu) {
             Button("close".localized(comment: "Close"), role: .cancel) { }
         } message: {

@@ -29,6 +29,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var isGPSEnabledOnCamera: Bool = false
     @Published var warnRemoveFromCameraMenu: Bool = false
     @Published var warnRemoveFromiPhoneMenu: Bool = false
+    @Published var isPairing: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string : "00010000-0000-1000-0000-D8492FffA821")
     private let startHandshakeUUID: CBUUID = CBUUID(string : "00010006-0000-1000-0000-D8492FffA821")
@@ -149,6 +150,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         isReconnecting = (peripheral.identifier == lastConnectedPeripheralUUID) && lastConnectedPeripheralUUID != nil
         
+        DispatchQueue.main.async {
+            self.isPairing = true
+        }
+        
         centralManager.connect(peripheral, options: nil)
         
         connectedPeripheral = peripheral
@@ -206,6 +211,9 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     let finishHandshakeData = Data([0x01])
                     peripheral.writeValue(finishHandshakeData, for: endHandshakeCharacteristic, type: .withResponse)
                     isReconnecting = false
+                    DispatchQueue.main.async {
+                        self.isPairing = false
+                    }
                 }
                 
             case actuateShutterUUID:
@@ -341,10 +349,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         startScanningCycle()
     }
     
-    func queryCameraForGPSStatus() {
-        connectedPeripheral?.readValue(for: confirmGeotagCharacteristic!)
-    }
-    
     func writeGPSValue(data: Data) {
         guard let geotagDataCharacteristic = geotagDataCharacteristic else {
             print("Geotagging characteristic not found or not enabled on camera")
@@ -379,6 +383,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         // Finish handshake
         let finishHandshakeData = Data([0x01])
         peripheral.writeValue(finishHandshakeData, for: characteristic, type: .withResponse)
+        
+        DispatchQueue.main.async {
+            self.isPairing = false
+        }
     }
     
     func pressShutter() {
