@@ -69,6 +69,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var lastConnectedPeripheralUUID: UUID?
     private var hasUserInitiatedDisconnect: Bool = false
     private var isReconnecting: Bool = false
+    private var hasCameraDisconnected: Bool = false
     
     override init() {
         super.init()
@@ -149,6 +150,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         scanTimer = nil
         
         isReconnecting = (peripheral.identifier == lastConnectedPeripheralUUID) && lastConnectedPeripheralUUID != nil
+        print("isReconnecting: \(isReconnecting)")
         
         DispatchQueue.main.async {
             self.isPairing = true
@@ -207,10 +209,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 endHandshakeCharacteristic = characteristic
                 
                 // Needed so that notifications work after reconnection
-                if isReconnecting, let endHandshakeCharacteristic = endHandshakeCharacteristic {
+                if hasCameraDisconnected || isReconnecting, let endHandshakeCharacteristic = endHandshakeCharacteristic {
                     let finishHandshakeData = Data([0x01])
                     peripheral.writeValue(finishHandshakeData, for: endHandshakeCharacteristic, type: .withResponse)
                     isReconnecting = false
+                    hasCameraDisconnected = false
                     DispatchQueue.main.async {
                         self.isPairing = false
                     }
@@ -291,7 +294,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 if value == Data([0x01, 0x01, 0x01]) {
                     hasAutofocusFailed = true
                 } else {
-                    print("Value not recognizedfor autofocusNavigationCharacteristic: \(value)")
+                    let hexString = value.map { String(format: "%02hhx", $0) }.joined()
+                    print("Value not recognized for autofocusNavigationCharacteristic: \(hexString)")
                 }
             }
         } else if characteristic.uuid == confirmGeotagCharacteristic?.uuid {
@@ -312,6 +316,13 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                 print("Value not recognized for 00040001-0000-1000-0000-D8492FFFA821: \(hexString)")
             }
+        } else {
+            if let value = characteristic.value {
+                let hexString = value.map { String(format: "%02hhx", $0) }.joined()
+                print("Value not recognized for unknown characteristic: \(characteristic.uuid) \(hexString)")
+            } else {
+                print("no value")
+            }
         }
     }
     
@@ -321,6 +332,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         // Happens when the camera is deleted from the iPhone's known devices list
         if let error = error as? CBError, error.code == CBError.peripheralDisconnected {
             warnRemoveFromCameraMenu = true
+            hasCameraDisconnected = true
             
             lastConnectedPeripheralUUID = nil
             UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")

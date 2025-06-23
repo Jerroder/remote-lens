@@ -30,8 +30,15 @@ class BluetoothDiscovery: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        if !discoveredPeripherals.contains(peripheral) {
-            discoveredPeripherals.append(peripheral)
+        if let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data {
+            if manufacturerData.count >= 2 {
+                let companyIdentifier = manufacturerData.subdata(in: 0..<2).withUnsafeBytes { $0.load(as: UInt16.self) }
+                if companyIdentifier == 0x01A9 { // Canon is 0x01A9
+                    if !discoveredPeripherals.contains(peripheral) {
+                        discoveredPeripherals.append(peripheral)
+                    }
+                }
+            }
         }
     }
     

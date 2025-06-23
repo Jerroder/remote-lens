@@ -86,5 +86,26 @@ struct ContentView: View {
         } message: {
             Text("remove_from_camera_menu_text".localized(comment: "Please remove this iPhone from your camera’s list"))
         }
+        .alert("location_access_denied".localized(comment: "Location access denied"), isPresented: $locationManager.showGPSDeniedAlert) {
+            Button("close".localized(comment: "Close"), role: .cancel) { }
+            Button("settings".localized(comment: "Settings"), role: nil) { openSettings() }
+        } message: {
+            Text("location_access_denied_text".localized(comment: "Please enable location access in settings."))
+        }
+        .onAppear {
+            if selectedOption == 2 {
+                locationManager.isGeotagginEnabled = true
+                locationManager.updateLocationServiceStatus()
+                locationManager.getGPSData { data in
+                    bleManager.writeGPSValue(data: data)
+                }
+            }
+        }
+    }
+    
+    private func openSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
     }
 }

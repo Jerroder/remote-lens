@@ -16,19 +16,18 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var isGeotagginEnabled: Bool = false
     @Published var showGPSDeniedAlert: Bool = false
     
+    @Published var lastLocation: CLLocation?
+    @Published var elevation: CLLocationDistance?
+    
     private let locationManager = CLLocationManager()
     
     private var locationUpdateCompletion: ((CLLocationCoordinate2D?, CLLocationDistance?) -> Void)?
-
-    // private var isUpdatingLocation = false
     
     override init() {
         super.init()
         self.locationManager.delegate = self
         self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
         self.locationManager.requestWhenInUseAuthorization()
-//        self.locationManager.startUpdatingLocation()
-//        isUpdatingLocation = true
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -36,8 +35,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             locationUpdateCompletion?(nil, nil)
             return
         }
-//        lastLocation = location
-//        elevation = location.altitude
+        
         locationUpdateCompletion?(location.coordinate, location.altitude)
         locationDataReceived = true
         isLoading = false
@@ -50,6 +48,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Failed to find user's location: \(error.localizedDescription)")
         locationUpdateCompletion?(nil, nil)
+    }
+    
+    func startUpdatingLocation() {
+        self.locationManager.startUpdatingLocation()
+    }
+    
+    func stopUpdatingLocation() {
+        self.locationManager.stopUpdatingLocation()
     }
     
     private func requestSingleLocationUpdate(completion: @escaping (CLLocationCoordinate2D?, CLLocationDistance?) -> Void) {

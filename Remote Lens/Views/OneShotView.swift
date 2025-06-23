@@ -207,10 +207,18 @@ struct OneShotView: View {
                                 Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
                                     .fontWeight(.bold)
                                     .foregroundColor(.red)
-                                if locationManager.isGeotagginEnabled {
-                                    Text(locationManager.isLoading ? "no_gps_data".localized(comment: "No GPS data") : "")
+                                
+//                                Text(!locationManager.isLocationServiceEnabled ? "location_access_denied".localized(comment: "Location access denied") : "")
+//                                    .fontWeight(.bold)
+//                                    .foregroundColor(.red)
+                                if !locationManager.isLocationServiceEnabled {
+                                    Text("location_access_denied".localized(comment: "Location access denied"))
                                         .fontWeight(.bold)
                                         .foregroundColor(.red)
+                                } else if locationManager.isLoading {
+                                    Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
                                 }
                             }
                         } else {
@@ -245,20 +253,6 @@ struct OneShotView: View {
                         
                         Spacer()
                     }
-                    
-//                    if locationManager.isGeotagginEnabled {
-//                        Button(action: {
-//                            bleManager.writeGPSValue(data: locationManager.getGPSData())
-//                        }) {
-//                            Image(systemName: "location.square.fill")
-//                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-//                                .padding()
-//                                .background(Color(UIColor.secondarySystemBackground))
-//                                .foregroundColor(Color(UIColor.label))
-//                                .cornerRadius(10)
-//                        }
-//                        .padding()
-//                    }
                     
                     Button(action: {
                         bleManager.switchMode()
