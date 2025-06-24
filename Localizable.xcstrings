@@ -97,6 +97,18 @@
         }
       }
     },
+    "camera_turned_off_text" : {
+      "comment" : "Please make sure the camera is turned on and in range.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please make sure the camera is turned on and in range."
+          }
+        }
+      }
+    },
     "close" : {
       "comment" : "Closer",
       "extractionState" : "manual",
@@ -749,7 +761,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please make sure the camera is turned on and in range.\n\nIf it is, remove this iPhone from your camera’s paired devices list and try connecting again."
+            "value" : "Please remove this iPhone from your camera’s paired devices list and try connecting again."
           }
         },
         "es" : {

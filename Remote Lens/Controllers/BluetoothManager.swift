@@ -29,19 +29,21 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var isGPSEnabledOnCamera: Bool = false
     @Published var warnRemoveFromCameraMenu: Bool = false
     @Published var warnRemoveFromiPhoneMenu: Bool = false
+    @Published var warnCameraTurnedOff: Bool = false
     @Published var isPairing: Bool = false
     
-    private let handshakeService: CBUUID = CBUUID(string : "00010000-0000-1000-0000-D8492FffA821")
-    private let startHandshakeUUID: CBUUID = CBUUID(string : "00010006-0000-1000-0000-D8492FffA821")
-    private let endHandshakeUUID: CBUUID = CBUUID(string : "0001000a-0000-1000-0000-D8492FffA821")
+    private let handshakeService: CBUUID = CBUUID(string: "00010000-0000-1000-0000-D8492FffA821")
+    private let startHandshakeUUID: CBUUID = CBUUID(string: "00010006-0000-1000-0000-D8492FffA821")
+    private let endHandshakeUUID: CBUUID = CBUUID(string: "0001000a-0000-1000-0000-D8492FffA821")
+    private let checkPairingUUID: CBUUID = CBUUID(string: "00010005-0000-1000-0000-D8492FFFA821")
     
-    private let actuateShutterService: CBUUID = CBUUID(string : "00030000-0000-1000-0000-d8492fffa821")
-    private let actuateShutterUUID: CBUUID = CBUUID(string : "00030030-0000-1000-0000-D8492FffA821")
+    private let actuateShutterService: CBUUID = CBUUID(string: "00030000-0000-1000-0000-d8492fffa821")
+    private let actuateShutterUUID: CBUUID = CBUUID(string: "00030030-0000-1000-0000-D8492FffA821")
     
-    private let modeService: CBUUID = CBUUID(string : "00030000-0000-1000-0000-d8492fffa821")
-    private let modeChangeUUID: CBUUID = CBUUID(string : "00030010-0000-1000-0000-d8492fffa821")
-    private let modeNotifyUUID: CBUUID = CBUUID(string : "00030011-0000-1000-0000-d8492fffa821")
-    private let playbackNavigationUUID: CBUUID = CBUUID(string : "00030020-0000-1000-0000-d8492fffa821")
+    private let modeService: CBUUID = CBUUID(string: "00030000-0000-1000-0000-d8492fffa821")
+    private let modeChangeUUID: CBUUID = CBUUID(string: "00030010-0000-1000-0000-d8492fffa821")
+    private let modeNotifyUUID: CBUUID = CBUUID(string: "00030011-0000-1000-0000-d8492fffa821")
+    private let playbackNavigationUUID: CBUUID = CBUUID(string: "00030020-0000-1000-0000-d8492fffa821")
     private let autofocusNotifiyUUID: CBUUID = CBUUID(string: "00030031-0000-1000-0000-d8492fffa821")
     
     private let geotagService: CBUUID = CBUUID(string: "00040000-0000-1000-0000-D8492FFFA821")
@@ -62,14 +64,14 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var autofocusNavigationCharacteristic: CBCharacteristic?
     private var geotagDataCharacteristic: CBCharacteristic?
     private var confirmGeotagCharacteristic: CBCharacteristic?
-    private var unknownCharacteristic: CBCharacteristic?
+    private var checkPairingCharacteristic: CBCharacteristic?
     
     private var scanTimer: Timer?
     private var shouldScan: Bool = true
     private var lastConnectedPeripheralUUID: UUID?
     private var hasUserInitiatedDisconnect: Bool = false
     private var isReconnecting: Bool = false
-    private var hasCameraDisconnected: Bool = false
+    private var requiresPairing: Bool = true
     
     override init() {
         super.init()
@@ -150,16 +152,13 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         scanTimer = nil
         
         isReconnecting = (peripheral.identifier == lastConnectedPeripheralUUID) && lastConnectedPeripheralUUID != nil
-        print("isReconnecting: \(isReconnecting)")
         
         DispatchQueue.main.async {
             self.isPairing = true
         }
         
         centralManager.connect(peripheral, options: nil)
-        
         connectedPeripheral = peripheral
-        connectedPeripheral?.delegate = self
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -178,6 +177,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         lastConnectedPeripheralUUID = peripheral.identifier
         peripheral.discoverServices(serviceUUIDs)
+        connectedPeripheral?.delegate = self
+        
         UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "lastConnectedPeripheralUUID")
         hasUserInitiatedDisconnect = false
     }
@@ -207,17 +208,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             case endHandshakeUUID:
                 print("Found characteristic for handshake")
                 endHandshakeCharacteristic = characteristic
-                
-                // Needed so that notifications work after reconnection
-                if hasCameraDisconnected || isReconnecting, let endHandshakeCharacteristic = endHandshakeCharacteristic {
-                    let finishHandshakeData = Data([0x01])
-                    peripheral.writeValue(finishHandshakeData, for: endHandshakeCharacteristic, type: .withResponse)
-                    isReconnecting = false
-                    hasCameraDisconnected = false
-                    DispatchQueue.main.async {
-                        self.isPairing = false
-                    }
-                }
                 
             case actuateShutterUUID:
                 print("Found characteristic for shutter")
@@ -250,10 +240,23 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 confirmGeotagCharacteristic = characteristic
                 peripheral.setNotifyValue(true, for: characteristic)
                 
-            case CBUUID(string: "00040001-0000-1000-0000-D8492FFFA821"):
-                print("Found 00040001-0000-1000-0000-D8492FFFA821")
-                unknownCharacteristic = characteristic
-                peripheral.setNotifyValue(true, for: characteristic)
+                // putting this here because this is the last discovered characteristic
+                // let's hope all R series camera have GPS capabilities
+                peripheral.readValue(for: checkPairingCharacteristic!)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    if !self.requiresPairing {
+                        let finishHandshakeData = Data([0x01])
+                        peripheral.writeValue(finishHandshakeData, for: self.endHandshakeCharacteristic!, type: .withResponse)
+                        self.isReconnecting = false
+                        DispatchQueue.main.async {
+                            self.isPairing = false
+                        }
+                    }
+                }
+                
+            case checkPairingUUID:
+                print("Found characteristic to check pairing")
+                checkPairingCharacteristic = characteristic
                 
             default:
                 print("Found characteristic \(characteristic.uuid)")
@@ -274,7 +277,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     print("User pressed Cancel.")
                     centralManager.cancelPeripheralConnection(peripheral)
                 } else {
-                    print("Value not recognized for confirmHandshakeCharacteristic: \(value)")
+                    let hexString = value.map { String(format: "%02hhx", $0) }.joined()
+                    print("Value not recognized for confirmHandshakeCharacteristic: \(hexString)")
                 }
             }
         } else if characteristic.uuid == modeNotifyCharacteristic?.uuid {
@@ -286,7 +290,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 } else if value == Data([0x01]) {
                     isShootingMode = true
                 } else {
-                    print("Value not recognized for modeNotifyCharacteristic: \(value)")
+                    let hexString = value.map { String(format: "%02hhx", $0) }.joined()
+                    print("Value not recognized for modeNotifyCharacteristic: \(hexString)")
                 }
             }
         } else if characteristic.uuid == autofocusNavigationCharacteristic?.uuid {
@@ -308,13 +313,18 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 } else if value == Data([0x01]) {
                     isGPSEnabledOnCamera = false
                 } else {
-                    print("Value not recognized for confirmGeotagCharacteristic: \(value)")
+                    let hexString = value.map { String(format: "%02hhx", $0) }.joined()
+                    print("Value not recognized for confirmGeotagCharacteristic: \(hexString)")
                 }
             }
-        } else if characteristic.uuid == CBUUID(string: "00040001-0000-1000-0000-D8492FFFA821") {
+        } else if characteristic.uuid == checkPairingCharacteristic?.uuid {
             if let value = characteristic.value {
-                let hexString = value.map { String(format: "%02hhx", $0) }.joined()
-                print("Value not recognized for 00040001-0000-1000-0000-D8492FFFA821: \(hexString)")
+                if value == Data([0x01]) {
+                    requiresPairing = false
+                } else {
+                    let hexString = value.map { String(format: "%02hhx", $0) }.joined()
+                    print("Value not recognized for checkPairingCharacteristic: \(hexString)")
+                }
             }
         } else {
             if let value = characteristic.value {
@@ -329,13 +339,17 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
         
-        // Happens when the camera is deleted from the iPhone's known devices list
+        print("requiresPairing \(requiresPairing)")
+        
         if let error = error as? CBError, error.code == CBError.peripheralDisconnected {
-            warnRemoveFromCameraMenu = true
-            hasCameraDisconnected = true
-            
-            lastConnectedPeripheralUUID = nil
-            UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
+            if requiresPairing { // Happens when the camera is deleted from the iPhone's known devices list
+                warnRemoveFromCameraMenu = true
+                
+                lastConnectedPeripheralUUID = nil
+                UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
+            } else { // Happens when the camera is simply turned off
+                warnCameraTurnedOff = true
+            }
             
             DispatchQueue.main.async {
                 self.isPairing = false

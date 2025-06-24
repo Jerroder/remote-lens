@@ -86,6 +86,11 @@ struct ContentView: View {
         } message: {
             Text("remove_from_camera_menu_text".localized(comment: "Please remove this iPhone from your camera’s list"))
         }
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnCameraTurnedOff) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("camera_turned_off_text".localized(comment: "Please make sure the camera is turned on and in range."))
+        }
         .alert("location_access_denied".localized(comment: "Location access denied"), isPresented: $locationManager.showGPSDeniedAlert) {
             Button("close".localized(comment: "Close"), role: .cancel) { }
             Button("settings".localized(comment: "Settings"), role: nil) { openSettings() }
