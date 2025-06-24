@@ -117,22 +117,20 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        guard !discoveredPeripheralIDs.contains(peripheral.identifier) else {
-            print("Peripheral discovered twice: \(peripheral.name ?? "Unknown")")
-            return
-        }
-        
         if let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data {
             if manufacturerData.count >= 2 {
                 let companyIdentifier = manufacturerData.subdata(in: 0..<2).withUnsafeBytes { $0.load(as: UInt16.self) }
                 if companyIdentifier == canonCompanyIdentifier {
-                    discoveredPeripheralIDs.insert(peripheral.identifier)
-                    DispatchQueue.main.async {
-                        self.peripherals.append(peripheral)
-                    }
-                    
-                    if peripheral.identifier == lastConnectedPeripheralUUID && !hasUserInitiatedDisconnect {
-                        connect(to: peripheral)
+                    if advertisementData[CBAdvertisementDataLocalNameKey] != nil { // the Camera advertises 2 devices, only one has the key CBAdvertisementDataLocalNameKey
+                        print("main")
+                        discoveredPeripheralIDs.insert(peripheral.identifier)
+                        DispatchQueue.main.async {
+                            self.peripherals.append(peripheral)
+                        }
+                        
+                        if peripheral.identifier == lastConnectedPeripheralUUID && !hasUserInitiatedDisconnect {
+                            connect(to: peripheral)
+                        }
                     }
                     
                     return

@@ -101,10 +101,28 @@
       "comment" : "Please make sure the camera is turned on and in range.",
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte stellen Sie sicher, dass die Kamera eingeschaltet ist und sich in Reichweite befindet."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Please make sure the camera is turned on and in range."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asegúrese de que la cámara esté encendida y dentro del alcance."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assurez-vous que l'appareil photo est allumé et qu'il est à portée."
           }
         }
       }
@@ -754,7 +772,7 @@
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Bitte entfernen Sie dieses iPhone aus der Liste der gekoppelten Geräte Ihrer Kamera und versuchen Sie es erneut."
           }
         },
@@ -766,13 +784,13 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Por favor, elimine este iPhone de la lista de dispositivos emparejados de su cámara e intente conectarse nuevamente."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Veuillez supprimer cet iPhone de la liste des appareils appariés à votre appareil photo et réessayez de vous connecter."
           }
         }
