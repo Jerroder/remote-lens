@@ -105,6 +105,12 @@ struct GeotaggingOnceView: View {
     @StateObject var locationManager: LocationManager
     @Binding var selectedOption: Int
     
+    @FocusState private var focusedField: Bool
+    
+    @State private var gpsInterval: Double = UserDefaults.standard.double(forKey: "gpsInterval")
+    @State private var showingInfoAlert: Bool = false
+    @State private var unit: Unit = Unit(symbol: "s")
+    
     var body: some View {
         Toggle(isOn: Binding(
             get: { withAnimation { selectedOption == 2 }},
@@ -128,10 +134,51 @@ struct GeotaggingOnceView: View {
         
         if selectedOption == 2 {
             VStack(spacing: 10) {
-                Toggle("Interval", isOn: Binding(
-                    get: { false }, // Replace with your logic for sub-options
-                    set: { _ in /* Handle sub-option selection */ }
-                ))
+                HStack {
+                    Text("gps_interval".localized(comment: "Get GPS data every"))
+                        // .frame(width: 170, alignment: .leading)
+                    TextFieldWithUnit(value: $gpsInterval, unit: $unit)
+                        .keyboardType(.decimalPad)
+                        .focused($focusedField)
+                        .onChange(of: gpsInterval) { _, _ in
+                            UserDefaults.standard.set(gpsInterval, forKey: "gpsInterval")
+                        }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        showingInfoAlert = true
+                    }) {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(Color(UIColor.systemGray))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding()
+                    .alert("Info", isPresented: $showingInfoAlert) {
+                        Button("OK", role: .cancel) { }
+                    } message: {
+                        Text("gps_interval_text".localized(comment: "If interval is 0"))
+                    }
+                }
+                .padding(.horizontal)
+                
+                if !locationManager.isLocationServiceEnabled {
+                    Text("location_access_denied".localized(comment: "Location access denied"))
+                        .fontWeight(.bold)
+                        .foregroundColor(.red)
+                } else if locationManager.isLoading {
+                    Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.orange)
+                }
+            }
+            .toolbar { // Throws an error for some reason, but it works
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("done".localized(comment: "Done")) {
+                        focusedField = false
+                    }
+                }
             }
             .transition(.opacity)
         }

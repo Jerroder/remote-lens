@@ -487,6 +487,30 @@
         }
       }
     },
+    "gps_interval" : {
+      "comment" : "Get GPS data every",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get GPS data every"
+          }
+        }
+      }
+    },
+    "gps_interval_text" : {
+      "comment" : "If interval is 0, the location with only be acquired and sent to the camera when the app starts.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If interval is 0, the location with only be acquired and sent to the camera when the app starts."
+          }
+        }
+      }
+    },
     "gps_not_enabled" : {
       "comment" : "GPS not enabled on camera",
       "extractionState" : "manual",
@@ -519,9 +543,6 @@
     },
     "Info" : {
       "shouldTranslate" : false
-    },
-    "Interval" : {
-
     },
     "intervalometer" : {
       "comment" : "Intervalometer",

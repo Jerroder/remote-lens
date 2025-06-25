@@ -21,12 +21,9 @@ struct IntervalometerView: View {
     @State private var exposureTime: Double = UserDefaults.standard.double(forKey: "exposureTime")
     @State private var isRunning: Bool = false
     @State private var showingInfoAlert: Bool = false
+    @State private var unit: Unit = Unit(symbol: "s")
     
     @FocusState private var focusedField: Field?
-    
-    private let numberOfPhotosKey: String = "numberOfPhotos"
-    private let waitBetweenPhotosKey: String = "waitBetweenPhotos"
-    private let exposureTimeKey: String = "exposureTime"
     
     var body: some View {
         Form {
@@ -37,30 +34,32 @@ struct IntervalometerView: View {
                     .keyboardType(.numberPad)
                     .focused($focusedField, equals: .numberOfPhotos)
                     .onChange(of: numberOfPhotos) { _, _ in
-                        UserDefaults.standard.set(numberOfPhotos, forKey: numberOfPhotosKey)
+                        UserDefaults.standard.set(numberOfPhotos, forKey: "numberOfPhotos")
                     }
             }
             
             HStack {
                 Text("wait_between_photos".localized(comment: "Wait between photos"))
                     .frame(width: 170, alignment: .leading)
-                TextField("0.0", value: $waitBetweenPhotos, format: .number)
+                TextFieldWithUnit(value: $waitBetweenPhotos, unit: $unit)
                     .keyboardType(.decimalPad)
                     .focused($focusedField, equals: .waitBetweenPhotos)
                     .onChange(of: waitBetweenPhotos) { _, _ in
-                        UserDefaults.standard.set(waitBetweenPhotos, forKey: waitBetweenPhotosKey)
+                        UserDefaults.standard.set(waitBetweenPhotos, forKey: "waitBetweenPhotos")
                     }
             }
             
             HStack {
                 Text("exposure_time".localized(comment: "Exposure time"))
                     .frame(width: 170, alignment: .leading)
-                TextField("0.0", value: $exposureTime, format: .number)
+                TextFieldWithUnit(value: $exposureTime, unit: $unit)
                     .keyboardType(.decimalPad)
                     .focused($focusedField, equals: .exposureTime)
                     .onChange(of: exposureTime) { _, _ in
-                        UserDefaults.standard.set(exposureTime, forKey: exposureTimeKey)
+                        UserDefaults.standard.set(exposureTime, forKey: "exposureTime")
                     }
+                
+                Spacer()
                 
                 Button(action: {
                     showingInfoAlert = true

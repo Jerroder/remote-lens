@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Arrowhead: Shape {
+private struct Arrowhead: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         
@@ -78,11 +78,11 @@ struct AnimatedArrowheadsView: View {
         }
     }
     
-    func rotationAngleForIndex(_ index: Int) -> Angle {
+    private func rotationAngleForIndex(_ index: Int) -> Angle {
         return Angle(degrees: Double(index) * 90)
     }
     
-    func positionForIndex(_ index: Int, center: CGPoint) -> CGPoint {
+    private func positionForIndex(_ index: Int, center: CGPoint) -> CGPoint {
         let hOffset: CGFloat = 115
         let vOffset: CGFloat = 140
         

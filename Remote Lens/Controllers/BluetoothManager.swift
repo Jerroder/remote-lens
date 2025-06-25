@@ -30,20 +30,18 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var warnRemoveFromCameraMenu: Bool = false
     @Published var warnRemoveFromiPhoneMenu: Bool = false
     @Published var warnCameraTurnedOff: Bool = false
-    @Published var isPairing: Bool = false
+    @Published var isConnecting: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string: "00010000-0000-1000-0000-D8492FffA821")
-    private let startHandshakeUUID: CBUUID = CBUUID(string: "00010006-0000-1000-0000-D8492FffA821")
-    private let endHandshakeUUID: CBUUID = CBUUID(string: "0001000a-0000-1000-0000-D8492FffA821")
     private let checkPairingUUID: CBUUID = CBUUID(string: "00010005-0000-1000-0000-D8492FFFA821")
+    private let endHandshakeUUID: CBUUID = CBUUID(string: "0001000a-0000-1000-0000-D8492FffA821")
+    private let startHandshakeUUID: CBUUID = CBUUID(string: "00010006-0000-1000-0000-D8492FffA821")
     
-    private let actuateShutterService: CBUUID = CBUUID(string: "00030000-0000-1000-0000-d8492fffa821")
-    private let actuateShutterUUID: CBUUID = CBUUID(string: "00030030-0000-1000-0000-D8492FffA821")
-    
-    private let modeService: CBUUID = CBUUID(string: "00030000-0000-1000-0000-d8492fffa821")
+    private let operationService: CBUUID = CBUUID(string: "00030000-0000-1000-0000-d8492fffa821")
     private let modeChangeUUID: CBUUID = CBUUID(string: "00030010-0000-1000-0000-d8492fffa821")
     private let modeNotifyUUID: CBUUID = CBUUID(string: "00030011-0000-1000-0000-d8492fffa821")
     private let playbackNavigationUUID: CBUUID = CBUUID(string: "00030020-0000-1000-0000-d8492fffa821")
+    private let actuateShutterUUID: CBUUID = CBUUID(string: "00030030-0000-1000-0000-D8492FffA821")
     private let autofocusNotifiyUUID: CBUUID = CBUUID(string: "00030031-0000-1000-0000-d8492fffa821")
     
     private let geotagService: CBUUID = CBUUID(string: "00040000-0000-1000-0000-D8492FFFA821")
@@ -122,7 +120,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 let companyIdentifier = manufacturerData.subdata(in: 0..<2).withUnsafeBytes { $0.load(as: UInt16.self) }
                 if companyIdentifier == canonCompanyIdentifier {
                     if advertisementData[CBAdvertisementDataLocalNameKey] != nil { // the Camera advertises 2 devices, only one has the key CBAdvertisementDataLocalNameKey
-                        print("main")
                         discoveredPeripheralIDs.insert(peripheral.identifier)
                         DispatchQueue.main.async {
                             self.peripherals.append(peripheral)
@@ -152,7 +149,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         isReconnecting = (peripheral.identifier == lastConnectedPeripheralUUID) && lastConnectedPeripheralUUID != nil
         
         DispatchQueue.main.async {
-            self.isPairing = true
+            self.isConnecting = true
         }
         
         centralManager.connect(peripheral, options: nil)
@@ -168,8 +165,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         let serviceUUIDs = [
             handshakeService,
-            actuateShutterService,
-            modeService,
+            operationService,
             geotagService
         ]
         
@@ -238,8 +234,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 confirmGeotagCharacteristic = characteristic
                 peripheral.setNotifyValue(true, for: characteristic)
                 
-                // putting this here because this is the last discovered characteristic
-                // let's hope all R series camera have GPS capabilities
+                // Putting this here because this is the last discovered characteristic
+                // let's hope all R series camera can be paired with a GPS receiver
                 peripheral.readValue(for: checkPairingCharacteristic!)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     if !self.requiresPairing {
@@ -247,7 +243,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                         peripheral.writeValue(finishHandshakeData, for: self.endHandshakeCharacteristic!, type: .withResponse)
                         self.isReconnecting = false
                         DispatchQueue.main.async {
-                            self.isPairing = false
+                            self.isConnecting = false
                         }
                     }
                 }
@@ -337,20 +333,24 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
         
-        print("requiresPairing \(requiresPairing)")
-        
-        if let error = error as? CBError, error.code == CBError.peripheralDisconnected {
-            if requiresPairing { // Happens when the camera is deleted from the iPhone's known devices list
-                warnRemoveFromCameraMenu = true
-                
-                lastConnectedPeripheralUUID = nil
-                UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
-            } else { // Happens when the camera is simply turned off
-                warnCameraTurnedOff = true
-            }
-            
-            DispatchQueue.main.async {
-                self.isPairing = false
+        if let error = error as? CBError {
+            if error.code == CBError.peripheralDisconnected {
+                if requiresPairing { // Happens when the camera is deleted from the iPhone's known devices list
+                    warnRemoveFromCameraMenu = true
+                    
+                    lastConnectedPeripheralUUID = nil
+                    UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
+                    
+                    DispatchQueue.main.async {
+                        self.isConnecting = false
+                    }
+                } else { // Happens when the camera is simply turned off
+                    warnCameraTurnedOff = true
+                }
+            } else if error.code == CBError.connectionTimeout {
+                print("The connection has timed out unexpectedly")
+            } else {
+                print("Disconnected with error: \(error.localizedDescription)")
             }
         }
         
@@ -373,7 +373,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
             
             DispatchQueue.main.async {
-                self.isPairing = false
+                self.isConnecting = false
             }
         }
         
@@ -417,7 +417,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         peripheral.writeValue(finishHandshakeData, for: characteristic, type: .withResponse)
         
         DispatchQueue.main.async {
-            self.isPairing = false
+            self.isConnecting = false
         }
     }
     

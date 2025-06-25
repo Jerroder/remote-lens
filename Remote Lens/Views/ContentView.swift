@@ -63,7 +63,7 @@ struct ContentView: View {
         } /* NavigationStack */
         .overlay(
             Group {
-                if bleManager.isPairing {
+                if bleManager.isConnecting {
                     VStack {
                         Text("connecting_please_wait".localized(comment: "Connecting, please wait..."))
                             .padding()
