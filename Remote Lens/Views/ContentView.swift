@@ -10,8 +10,10 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var bleManager = BluetoothManager()
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var timerManager = TimerManager()
     
     @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
+    @State private var gpsInterval: Double = UserDefaults.standard.double(forKey: "gpsInterval")
     @State private var showGeotagSheet: Bool = false
     
     var body: some View {
@@ -55,7 +57,7 @@ struct ContentView: View {
                     }
                 }
                 .sheet(isPresented: $showGeotagSheet) {
-                    GeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, showGeotagSheet: $showGeotagSheet)
+                    GeotaggingView(bleManager: bleManager, locationManager: locationManager, timerManager: timerManager, selectedOption: $selectedOption, gpsInterval: $gpsInterval, showGeotagSheet: $showGeotagSheet)
                 }
             } else {
                 ConnectionView(bleManager: bleManager)
@@ -101,8 +103,11 @@ struct ContentView: View {
             if selectedOption == 2 {
                 locationManager.isGeotagginEnabled = true
                 locationManager.updateLocationServiceStatus()
-                locationManager.getGPSData { data in
-                    bleManager.writeGPSValue(data: data)
+                
+                timerManager.startTimer(interval: gpsInterval) {
+                    locationManager.getGPSData { data in
+                        bleManager.writeGPSValue(data: data)
+                    }
                 }
             }
         }

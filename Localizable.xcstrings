@@ -506,7 +506,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If interval is 0, the location with only be acquired and sent to the camera when the app starts."
+            "value" : "If interval is 0, the location will only be acquired and sent to the camera once, when the app starts.\n\nIf not, it will update your location every x seconds. However, if the GPS signal takes longer than x seconds to lock onto your position, some updates may be skipped. This means the timing between location updates might not always be exact."
           }
         }
       }

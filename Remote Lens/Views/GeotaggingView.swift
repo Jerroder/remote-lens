@@ -11,6 +11,7 @@ struct NoGeotaggingView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
     @Binding var selectedOption: Int
+    @ObservedObject var timerManager: TimerManager
     
     var body: some View {
         Toggle(isOn: Binding(
@@ -26,6 +27,7 @@ struct NoGeotaggingView: View {
                     let data: Data = Data([0x03])
                     bleManager.writeGPSValue(data: data)
                     locationManager.isGeotagginEnabled = false
+                    timerManager.stopTimer()
                 }
             }
         )) {
@@ -41,6 +43,7 @@ struct ManualGeotaggingView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
     @Binding var selectedOption: Int
+    @ObservedObject var timerManager: TimerManager
     
     var body: some View {
         Toggle(isOn: Binding(
@@ -55,6 +58,7 @@ struct ManualGeotaggingView: View {
                 if newValue {
                     locationManager.isGeotagginEnabled = false
                     locationManager.locationDataReceived = false
+                    timerManager.stopTimer()
                 }
             }
         )) {
@@ -104,12 +108,14 @@ struct GeotaggingOnceView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
     @Binding var selectedOption: Int
+    @Binding var gpsInterval: Double
+    @ObservedObject var timerManager: TimerManager
     
     @FocusState private var focusedField: Bool
     
-    @State private var gpsInterval: Double = UserDefaults.standard.double(forKey: "gpsInterval")
     @State private var showingInfoAlert: Bool = false
     @State private var unit: Unit = Unit(symbol: "s")
+    @State private var timer: Timer?
     
     var body: some View {
         Toggle(isOn: Binding(
@@ -123,6 +129,12 @@ struct GeotaggingOnceView: View {
                 
                 if newValue {
                     locationManager.isGeotagginEnabled = true
+                    
+                    timerManager.startTimer(interval: gpsInterval) {
+                        locationManager.getGPSData { data in
+                            bleManager.writeGPSValue(data: data)
+                        }
+                    }
                 }
             }
         )) {
@@ -134,14 +146,17 @@ struct GeotaggingOnceView: View {
         
         if selectedOption == 2 {
             VStack(spacing: 10) {
+                Text(!bleManager.isGPSEnabledOnCamera ? "gps_not_enabled".localized(comment: "GPS not enabled on camera, please enable or re-enable it") : "")
+                
                 HStack {
                     Text("gps_interval".localized(comment: "Get GPS data every"))
-                        // .frame(width: 170, alignment: .leading)
+                    // .frame(width: 170, alignment: .leading)
                     TextFieldWithUnit(value: $gpsInterval, unit: $unit)
                         .keyboardType(.decimalPad)
                         .focused($focusedField)
                         .onChange(of: gpsInterval) { _, _ in
                             UserDefaults.standard.set(gpsInterval, forKey: "gpsInterval")
+                            restartTimer()
                         }
                     
                     Spacer()
@@ -183,12 +198,22 @@ struct GeotaggingOnceView: View {
             .transition(.opacity)
         }
     }
+    
+    private func restartTimer() {
+        timerManager.stopTimer()
+        timerManager.startTimer(interval: gpsInterval) {
+            locationManager.getGPSData { data in
+                bleManager.writeGPSValue(data: data)
+            }
+        }
+    }
 }
 
 struct GeotaggingWhenTriggeredView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
     @Binding var selectedOption: Int
+    @ObservedObject var timerManager: TimerManager
     
     var body: some View {
         Toggle(isOn: Binding(
@@ -202,6 +227,7 @@ struct GeotaggingWhenTriggeredView: View {
                 
                 if newValue {
                     locationManager.isGeotagginEnabled = true
+                    timerManager.stopTimer()
                 }
             }
         )) {
@@ -226,7 +252,9 @@ struct GeotaggingWhenTriggeredView: View {
 struct GeotaggingView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
+    @StateObject var timerManager: TimerManager
     @Binding var selectedOption: Int
+    @Binding var gpsInterval: Double
     @Binding var showGeotagSheet: Bool
     
     var body: some View {
@@ -236,13 +264,13 @@ struct GeotaggingView: View {
                     .font(.headline)
                     .padding()
                 
-                NoGeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption)
+                NoGeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, timerManager: timerManager)
                 
-                ManualGeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption)
+                ManualGeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, timerManager: timerManager)
                 
-                GeotaggingOnceView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption)
+                GeotaggingOnceView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, gpsInterval: $gpsInterval, timerManager: timerManager)
                 
-                GeotaggingWhenTriggeredView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption)
+                GeotaggingWhenTriggeredView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, timerManager: timerManager)
                 
                 Spacer()
             } /* VStack */
