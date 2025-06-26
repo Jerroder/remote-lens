@@ -10,8 +10,8 @@ import SwiftUI
 struct NoGeotaggingView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
-    @Binding var selectedOption: Int
     @ObservedObject var timerManager: TimerManager
+    @Binding var selectedOption: Int
     
     var body: some View {
         Toggle(isOn: Binding(
@@ -27,6 +27,7 @@ struct NoGeotaggingView: View {
                     let data: Data = Data([0x03])
                     bleManager.writeGPSValue(data: data)
                     locationManager.isGeotagginEnabled = false
+                    locationManager.setIsAsync(isAsync: false)
                     timerManager.stopTimer()
                 }
             }
@@ -42,8 +43,8 @@ struct NoGeotaggingView: View {
 struct ManualGeotaggingView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
-    @Binding var selectedOption: Int
     @ObservedObject var timerManager: TimerManager
+    @Binding var selectedOption: Int
     
     var body: some View {
         Toggle(isOn: Binding(
@@ -58,6 +59,7 @@ struct ManualGeotaggingView: View {
                 if newValue {
                     locationManager.isGeotagginEnabled = false
                     locationManager.locationDataReceived = false
+                    locationManager.setIsAsync(isAsync: true)
                     timerManager.stopTimer()
                 }
             }
@@ -107,9 +109,9 @@ struct ManualGeotaggingView: View {
 struct GeotaggingOnceView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
+    @ObservedObject var timerManager: TimerManager
     @Binding var selectedOption: Int
     @Binding var gpsInterval: Double
-    @ObservedObject var timerManager: TimerManager
     
     @FocusState private var focusedField: Bool
     
@@ -129,6 +131,7 @@ struct GeotaggingOnceView: View {
                 
                 if newValue {
                     locationManager.isGeotagginEnabled = true
+                    locationManager.setIsAsync(isAsync: true)
                     
                     timerManager.startTimer(interval: gpsInterval) {
                         locationManager.getGPSData { data in
@@ -212,8 +215,9 @@ struct GeotaggingOnceView: View {
 struct GeotaggingWhenTriggeredView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
-    @Binding var selectedOption: Int
     @ObservedObject var timerManager: TimerManager
+    @Binding var selectedOption: Int
+    @Binding var waitForFix: Bool
     
     var body: some View {
         Toggle(isOn: Binding(
@@ -239,10 +243,12 @@ struct GeotaggingWhenTriggeredView: View {
         
         if selectedOption == 3 {
             VStack(spacing: 10) {
-                Toggle("Wait for GPS to get a fix before taking the photo", isOn: Binding(
-                    get: { false }, // Replace with your logic for sub-options
-                    set: { _ in /* Handle sub-option selection */ }
-                ))
+                Toggle("Wait for GPS to get a fix before taking the photo", isOn: $waitForFix)
+                    .padding()
+                    .onChange(of: waitForFix) { _, newValue in
+                        UserDefaults.standard.set(waitForFix, forKey: "waitForFix")
+                        locationManager.setIsAsync(isAsync: newValue)
+                    }
             }
             .transition(.opacity)
         }
@@ -256,6 +262,7 @@ struct GeotaggingView: View {
     @Binding var selectedOption: Int
     @Binding var gpsInterval: Double
     @Binding var showGeotagSheet: Bool
+    @Binding var waitForFix: Bool
     
     var body: some View {
         NavigationStack {
@@ -264,13 +271,13 @@ struct GeotaggingView: View {
                     .font(.headline)
                     .padding()
                 
-                NoGeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, timerManager: timerManager)
+                NoGeotaggingView(bleManager: bleManager, locationManager: locationManager, timerManager: timerManager, selectedOption: $selectedOption)
                 
-                ManualGeotaggingView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, timerManager: timerManager)
+                ManualGeotaggingView(bleManager: bleManager, locationManager: locationManager, timerManager: timerManager, selectedOption: $selectedOption)
                 
-                GeotaggingOnceView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, gpsInterval: $gpsInterval, timerManager: timerManager)
+                GeotaggingOnceView(bleManager: bleManager, locationManager: locationManager, timerManager: timerManager, selectedOption: $selectedOption, gpsInterval: $gpsInterval)
                 
-                GeotaggingWhenTriggeredView(bleManager: bleManager, locationManager: locationManager, selectedOption: $selectedOption, timerManager: timerManager)
+                GeotaggingWhenTriggeredView(bleManager: bleManager, locationManager: locationManager, timerManager: timerManager, selectedOption: $selectedOption, waitForFix: $waitForFix)
                 
                 Spacer()
             } /* VStack */

@@ -22,6 +22,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     
     private var locationUpdateCompletion: ((CLLocationCoordinate2D?, CLLocationDistance?) -> Void)?
+    private var isAsync: Bool = false
     
     override init() {
         super.init()
@@ -36,9 +37,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             return
         }
         
-        locationUpdateCompletion?(location.coordinate, location.altitude)
+        if isAsync {
+            locationUpdateCompletion?(location.coordinate, location.altitude)
+        }
         locationDataReceived = true
         isLoading = false
+        
+        lastLocation = location
+        elevation = location.altitude
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
@@ -50,6 +56,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationUpdateCompletion?(nil, nil)
     }
     
+    func setIsAsync(isAsync: Bool) {
+        self.isAsync = isAsync
+    }
+    
     func startUpdatingLocation() {
         self.locationManager.startUpdatingLocation()
     }
@@ -58,11 +68,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.locationManager.stopUpdatingLocation()
     }
     
+    private func requestSingleLocationUpdate() {
+        isLoading = true
+        locationDataReceived = false
+        locationManager.requestLocation()
+    }
+    
     private func requestSingleLocationUpdate(completion: @escaping (CLLocationCoordinate2D?, CLLocationDistance?) -> Void) {
-//        if isUpdatingLocation {
-//            locationManager.stopUpdatingLocation()
-//            isUpdatingLocation = false
-//        }
         isLoading = true
         locationDataReceived = false
         locationUpdateCompletion = completion
@@ -88,6 +100,77 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
+    private func floatToData(_ value: Float) -> Data {
+        var floatValue = value
+        return withUnsafePointer(to: &floatValue) {
+            Data(bytes: $0, count: MemoryLayout<Float>.size)
+        }
+    }
+
+    private func getLocationAndElevation() -> (latitude: Data?, longitude: Data?, elevation: Data?) {
+        guard let location = lastLocation else {
+            print("Location data is not available.")
+            return (nil, nil, nil)
+        }
+
+        let latitude = Float(location.coordinate.latitude)
+        let longitude = Float(location.coordinate.longitude)
+        let elevation = Float(location.altitude)
+
+        var dataLatitude = floatToData(latitude)
+        var dataLongitude = floatToData(longitude)
+        var dataElevation = floatToData(elevation)
+
+        if latitude >= 0 {
+            dataLatitude.insert(0x4E, at: 0)
+        } else {
+            dataLatitude.insert(0x53, at: 0)
+        }
+
+        if longitude >= 0 {
+            dataLongitude.insert(0x45, at: 0)
+        } else {
+            dataLongitude.insert(0x57, at: 0)
+        }
+
+        if elevation >= 0 {
+            dataElevation.insert(0x2B, at: 0)
+        } else {
+            dataElevation.insert(0x2D, at: 0)
+        }
+
+        return (dataLatitude, dataLongitude, dataElevation)
+    }
+    
+    func getGPSData() -> Data {
+        requestSingleLocationUpdate()
+        
+        var data: Data = Data([0x04])
+        if lastLocation != nil {
+            let (dataLatitude, dataLongitude, dataElevation) = getLocationAndElevation()
+            
+            data.append(dataLatitude!)
+            data.append(dataLongitude!)
+            data.append(dataElevation!)
+        } else {
+            if let status = locationStatus {
+                if status == .denied {
+                    showGPSDeniedAlert = true
+                }
+            }
+            
+            data.append(Data(count: 12))
+            data.insert(0x4E, at: 1)
+            data.insert(0x45, at: 6)
+            data.insert(0x2B, at: 11)
+        }
+        
+        let dateData: Data = getCurrentUTCUnixEpochTimeAsData()
+        data.append(dateData)
+        
+        return data
+    }
+    
     func getGPSData(completion: @escaping (Data) -> Void) {
         requestSingleLocationUpdate { coordinate, altitude in
             
@@ -98,21 +181,21 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 data.append(withUnsafeBytes(of: Float(altitude)) { Data($0) })
                 
                 if coordinate.latitude >= 0 {
-                    data.insert(0x4E, at: 1)
+                    data.insert(0x4E, at: 1) // ASCII for 'N'
                 } else {
-                    data.insert(0x53, at: 1)
+                    data.insert(0x53, at: 1) // ASCII for 'S'
                 }
                 
                 if coordinate.longitude >= 0 {
-                    data.insert(0x45, at: 6)
+                    data.insert(0x45, at: 6) // ASCII for 'E'
                 } else {
-                    data.insert(0x57, at: 6)
+                    data.insert(0x57, at: 6) // ASCII for 'W'
                 }
                 
                 if altitude >= 0 {
-                    data.insert(0x2B, at: 11)
+                    data.insert(0x2B, at: 11) // ASCII for '+'
                 } else {
-                    data.insert(0x2D, at: 11)
+                    data.insert(0x2D, at: 11) // ASCII for '-'
                 }
             } else {
                 if let status = self.locationStatus {
@@ -122,6 +205,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                     }
                 }
                 data.append(Data(count: 15))
+                data.insert(0x4E, at: 1)
+                data.insert(0x45, at: 6)
+                data.insert(0x2B, at: 11)
             }
             
             let dateData: Data = self.getCurrentUTCUnixEpochTimeAsData()

@@ -60,6 +60,8 @@ struct OneShotView: View {
     @ObservedObject var bleManager: BluetoothManager
     @ObservedObject var locationManager: LocationManager
     @Binding var showGeotagSheet: Bool
+    @Binding var waitForFix: Bool
+    @Binding var selectedOption: Int
     
     @State private var isButtonPressed = false
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
@@ -111,12 +113,38 @@ struct OneShotView: View {
                                             let deltaY = abs(translation.height - initialTouchPosition.height)
                                             
                                             if deltaX < 1 && deltaY < 1 {
-                                                if !isPressed && !isBurstMode {
+                                                if !isPressed {
                                                     isPressed = true
-                                                    bleManager.takePhoto()
-                                                } else if !isPressed && isBurstMode {
-                                                    bleManager.pressShutter()
+                                                    
+                                                    if selectedOption == 3 {
+                                                        if waitForFix {
+                                                            locationManager.getGPSData { data in
+                                                                bleManager.writeGPSValue(data: data)
+                                                                
+                                                                if !isBurstMode {
+                                                                    bleManager.takePhoto()
+                                                                } else if isBurstMode {
+                                                                    bleManager.pressShutter()
+                                                                }
+                                                            }
+                                                        } else {
+                                                            bleManager.writeGPSValue(data: locationManager.getGPSData())
+                                                            
+                                                            if !isBurstMode {
+                                                                bleManager.takePhoto()
+                                                            } else if isBurstMode {
+                                                                bleManager.pressShutter()
+                                                            }
+                                                        }
+                                                    } else {
+                                                        if !isBurstMode {
+                                                            bleManager.takePhoto()
+                                                        } else if isBurstMode {
+                                                            bleManager.pressShutter()
+                                                        }
+                                                    }
                                                 }
+                                                
                                                 invalidateTimers()
                                                 startDecreaseAnimation()
                                             }
@@ -125,10 +153,10 @@ struct OneShotView: View {
                                             if isBurstMode {
                                                 bleManager.releaseShutter()
                                             }
+                                            isPressed = false
                                             invalidateTimers()
                                             startIncreaseAnimation()
                                             initialTouchPosition = .zero
-                                            isPressed = false
                                         }
                                 )
                         } /* ZStack */
@@ -208,9 +236,6 @@ struct OneShotView: View {
                                     .fontWeight(.bold)
                                     .foregroundColor(.red)
                                 
-//                                Text(!locationManager.isLocationServiceEnabled ? "location_access_denied".localized(comment: "Location access denied") : "")
-//                                    .fontWeight(.bold)
-//                                    .foregroundColor(.red)
                                 if !locationManager.isLocationServiceEnabled {
                                     Text("location_access_denied".localized(comment: "Location access denied"))
                                         .fontWeight(.bold)

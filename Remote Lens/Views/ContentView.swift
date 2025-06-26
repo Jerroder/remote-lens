@@ -15,13 +15,14 @@ struct ContentView: View {
     @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
     @State private var gpsInterval: Double = UserDefaults.standard.double(forKey: "gpsInterval")
     @State private var showGeotagSheet: Bool = false
+    @State private var waitForFix: Bool = UserDefaults.standard.bool(forKey: "waitForFix")
     
     var body: some View {
         NavigationStack {
             if bleManager.isConnected {
                 TabView {
                     NavigationStack {
-                        OneShotView(bleManager: bleManager, locationManager: locationManager, showGeotagSheet: $showGeotagSheet)
+                        OneShotView(bleManager: bleManager, locationManager: locationManager, showGeotagSheet: $showGeotagSheet, waitForFix: $waitForFix, selectedOption: $selectedOption)
                     }
                     .tabItem {
                         Label("one_shot".localized(comment: "One Shot"), systemImage: "camera")
@@ -57,7 +58,8 @@ struct ContentView: View {
                     }
                 }
                 .sheet(isPresented: $showGeotagSheet) {
-                    GeotaggingView(bleManager: bleManager, locationManager: locationManager, timerManager: timerManager, selectedOption: $selectedOption, gpsInterval: $gpsInterval, showGeotagSheet: $showGeotagSheet)
+                    GeotaggingView(bleManager: bleManager, locationManager: locationManager, timerManager: timerManager,
+                                   selectedOption: $selectedOption, gpsInterval: $gpsInterval, showGeotagSheet: $showGeotagSheet, waitForFix: $waitForFix)
                 }
             } else {
                 ConnectionView(bleManager: bleManager)
