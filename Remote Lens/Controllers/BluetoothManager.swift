@@ -20,17 +20,17 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         case zoomOut
     }
     
-    @Published var peripherals: [CBPeripheral] = [CBPeripheral]()
-    @Published var connectedPeripheral: CBPeripheral?
-    @Published var isConnected: Bool = false
-    @Published var isBluetoothEnabled: Bool = false
-    @Published var isShootingMode: Bool = true
-    @Published var hasAutofocusFailed: Bool = false
-    @Published var isGPSEnabledOnCamera: Bool = false
-    @Published var warnRemoveFromCameraMenu: Bool = false
-    @Published var warnRemoveFromiPhoneMenu: Bool = false
-    @Published var warnCameraTurnedOff: Bool = false
-    @Published var isConnecting: Bool = false
+    @Published private var _peripherals: [CBPeripheral] = [CBPeripheral]()
+    @Published private var _connectedPeripheral: CBPeripheral?
+    @Published private var _isConnected: Bool = false
+    @Published private var _isBluetoothEnabled: Bool = false
+    @Published private var _isShootingMode: Bool = true
+    @Published private var _hasAutofocusFailed: Bool = false
+    @Published private var _isGPSEnabledOnCamera: Bool = false
+    @Published private var _warnRemoveFromCameraMenu: Bool = false
+    @Published private var _warnRemoveFromiPhoneMenu: Bool = false
+    @Published private var _warnCameraTurnedOff: Bool = false
+    @Published private var _isConnecting: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string: "00010000-0000-1000-0000-D8492FffA821")
     private let checkPairingUUID: CBUUID = CBUUID(string: "00010005-0000-1000-0000-D8492FFFA821")
@@ -71,6 +71,81 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var isReconnecting: Bool = false
     private var requiresPairing: Bool = true
     
+    var peripherals: [CBPeripheral] {
+        get {
+            return _peripherals
+        }
+    }
+    
+    var connectedPeripheral: CBPeripheral? {
+        get {
+            return _connectedPeripheral
+        }
+    }
+    
+    var isConnected: Bool {
+        get {
+            return _isConnected
+        }
+    }
+    
+    var isBluetoothEnabled: Bool {
+        get {
+            return _isBluetoothEnabled
+        }
+    }
+    
+    var isShootingMode: Bool {
+        get {
+            return _isShootingMode
+        }
+    }
+    
+    var hasAutofocusFailed: Bool {
+        get {
+            return _hasAutofocusFailed
+        }
+    }
+    
+    var isGPSEnabledOnCamera: Bool {
+        get {
+            return _isGPSEnabledOnCamera
+        }
+    }
+    
+    var warnRemoveFromCameraMenu: Bool {
+        get {
+            return _warnRemoveFromCameraMenu
+        }
+        set {
+            _warnRemoveFromCameraMenu = newValue
+        }
+    }
+    
+    var warnRemoveFromiPhoneMenu: Bool {
+        get {
+            return _warnRemoveFromiPhoneMenu
+        }
+        set {
+            _warnRemoveFromiPhoneMenu = newValue
+        }
+    }
+    
+    var warnCameraTurnedOff: Bool {
+        get {
+            return _warnCameraTurnedOff
+        }
+        set {
+            _warnCameraTurnedOff = newValue
+        }
+    }
+    
+    var isConnecting: Bool {
+        get {
+            return _isConnecting
+        }
+    }
+    
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil)
@@ -82,10 +157,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn {
-            isBluetoothEnabled = true
+            _isBluetoothEnabled = true
             startScanningCycle()
         } else {
-            isBluetoothEnabled = false
+            _isBluetoothEnabled = false
             print("Bluetooth is not available.")
         }
     }
@@ -99,7 +174,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         scanTimer?.invalidate()
         
         DispatchQueue.main.async {
-            self.peripherals.removeAll()
+            self._peripherals.removeAll()
             self.discoveredPeripheralIDs.removeAll()
         }
         
@@ -122,7 +197,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     if advertisementData[CBAdvertisementDataLocalNameKey] != nil { // the Camera advertises 2 devices, only one has the key CBAdvertisementDataLocalNameKey
                         discoveredPeripheralIDs.insert(peripheral.identifier)
                         DispatchQueue.main.async {
-                            self.peripherals.append(peripheral)
+                            self._peripherals.append(peripheral)
                         }
                         
                         if peripheral.identifier == lastConnectedPeripheralUUID && !hasUserInitiatedDisconnect {
@@ -149,16 +224,16 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         isReconnecting = (peripheral.identifier == lastConnectedPeripheralUUID) && lastConnectedPeripheralUUID != nil
         
         DispatchQueue.main.async {
-            self.isConnecting = true
+            self._isConnecting = true
         }
         
         centralManager.connect(peripheral, options: nil)
-        connectedPeripheral = peripheral
+        _connectedPeripheral = peripheral
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         DispatchQueue.main.async {
-            self.isConnected = true
+            self._isConnected = true
         }
         
         peripheral.delegate = self
@@ -171,7 +246,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         lastConnectedPeripheralUUID = peripheral.identifier
         peripheral.discoverServices(serviceUUIDs)
-        connectedPeripheral?.delegate = self
+        _connectedPeripheral?.delegate = self
         
         UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "lastConnectedPeripheralUUID")
         hasUserInitiatedDisconnect = false
@@ -243,7 +318,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                         peripheral.writeValue(finishHandshakeData, for: self.endHandshakeCharacteristic!, type: .withResponse)
                         self.isReconnecting = false
                         DispatchQueue.main.async {
-                            self.isConnecting = false
+                            self._isConnecting = false
                         }
                     }
                 }
@@ -278,11 +353,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         } else if characteristic.uuid == modeNotifyCharacteristic?.uuid {
             if let value = characteristic.value {
                 if value == Data([0x04]) {
-                    isShootingMode = true
+                    _isShootingMode = true
                 } else if value == Data([0x03]) {
-                    isShootingMode = false
+                    _isShootingMode = false
                 } else if value == Data([0x01]) {
-                    isShootingMode = true
+                    _isShootingMode = true
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for modeNotifyCharacteristic: \(hexString)")
@@ -291,7 +366,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         } else if characteristic.uuid == autofocusNavigationCharacteristic?.uuid {
             if let value = characteristic.value {
                 if value == Data([0x01, 0x01, 0x01]) {
-                    hasAutofocusFailed = true
+                    _hasAutofocusFailed = true
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for autofocusNavigationCharacteristic: \(hexString)")
@@ -301,11 +376,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             if let value = characteristic.value {
                 if value == Data([0x03]) {
                     let confirmGeotagData = Data([0x01])
-                    connectedPeripheral?.writeValue(confirmGeotagData, for: geotagDataCharacteristic!, type: .withResponse)
+                    _connectedPeripheral?.writeValue(confirmGeotagData, for: geotagDataCharacteristic!, type: .withResponse)
                 } else if value == Data([0x02]) {
-                    isGPSEnabledOnCamera = true
+                    _isGPSEnabledOnCamera = true
                 } else if value == Data([0x01]) {
-                    isGPSEnabledOnCamera = false
+                    _isGPSEnabledOnCamera = false
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for confirmGeotagCharacteristic: \(hexString)")
@@ -336,16 +411,16 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         if let error = error as? CBError {
             if error.code == CBError.peripheralDisconnected {
                 if requiresPairing { // Happens when the camera is deleted from the iPhone's known devices list
-                    warnRemoveFromCameraMenu = true
+                    _warnRemoveFromCameraMenu = true
                     
                     lastConnectedPeripheralUUID = nil
                     UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
                     
                     DispatchQueue.main.async {
-                        self.isConnecting = false
+                        self._isConnecting = false
                     }
                 } else { // Happens when the camera is simply turned off
-                    warnCameraTurnedOff = true
+                    _warnCameraTurnedOff = true
                 }
             } else if error.code == CBError.connectionTimeout {
                 print("The connection has timed out unexpectedly")
@@ -355,7 +430,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
         
         DispatchQueue.main.async {
-            self.isConnected = false
+            self._isConnected = false
         }
         
         shouldScan = true
@@ -367,13 +442,13 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         // Happens when the iPhone is deleted from the camera's known devices list
         if let error = error as? CBError, error.code == CBError.peerRemovedPairingInformation {
-            warnRemoveFromiPhoneMenu = true
+            _warnRemoveFromiPhoneMenu = true
             
             lastConnectedPeripheralUUID = nil
             UserDefaults.standard.removeObject(forKey: "lastConnectedPeripheralUUID")
             
             DispatchQueue.main.async {
-                self.isConnecting = false
+                self._isConnecting = false
             }
         }
         
@@ -387,7 +462,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             return
         }
         
-        connectedPeripheral?.writeValue(data, for: geotagDataCharacteristic, type: .withResponse)
+        _connectedPeripheral?.writeValue(data, for: geotagDataCharacteristic, type: .withResponse)
     }
     
     private func performHandshake(with peripheral: CBPeripheral) {
@@ -417,7 +492,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         peripheral.writeValue(finishHandshakeData, for: characteristic, type: .withResponse)
         
         DispatchQueue.main.async {
-            self.isConnecting = false
+            self._isConnecting = false
         }
     }
     
@@ -427,10 +502,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             return
         }
         
-        hasAutofocusFailed = false
+        _hasAutofocusFailed = false
         
         let pressData = Data([0x00, 0x01])
-        connectedPeripheral?.writeValue(pressData, for: shutterCharacteristic, type: .withResponse)
+        _connectedPeripheral?.writeValue(pressData, for: shutterCharacteristic, type: .withResponse)
     }
     
     func releaseShutter() {
@@ -440,7 +515,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
         
         let releaseData = Data([0x00, 0x02])
-        connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
+        _connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
     }
     
     func takePhoto() {
@@ -455,7 +530,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
         
         let playbackData = Data([0x01])
-        connectedPeripheral?.writeValue(playbackData, for: modeChangeCharacteristic, type: .withResponse)
+        _connectedPeripheral?.writeValue(playbackData, for: modeChangeCharacteristic, type: .withResponse)
     }
     
     private func switchToShooting() {
@@ -465,11 +540,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
         
         let shootingData = Data([0x02])
-        connectedPeripheral?.writeValue(shootingData, for: modeChangeCharacteristic, type: .withResponse)
+        _connectedPeripheral?.writeValue(shootingData, for: modeChangeCharacteristic, type: .withResponse)
     }
     
     func switchMode() {
-        if isShootingMode {
+        if _isShootingMode {
             switchToPlayback()
         } else {
             switchToShooting()
@@ -477,7 +552,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     }
     
     func disconnect() {
-        guard let peripheral = connectedPeripheral else {
+        guard let peripheral = _connectedPeripheral else {
             print("No connected peripheral to disconnect from.")
             return
         }
@@ -521,7 +596,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             releaseButtonData = Data([0x80, 0x00, 0x00, 0x40])
         }
         
-        connectedPeripheral?.writeValue(pressButtonData, for: playbackNavigationCharacteristic, type: .withResponse)
-        connectedPeripheral?.writeValue(releaseButtonData, for: playbackNavigationCharacteristic, type: .withResponse)
+        _connectedPeripheral?.writeValue(pressButtonData, for: playbackNavigationCharacteristic, type: .withResponse)
+        _connectedPeripheral?.writeValue(releaseButtonData, for: playbackNavigationCharacteristic, type: .withResponse)
     }
 }

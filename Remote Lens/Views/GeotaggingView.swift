@@ -291,12 +291,6 @@ struct GeotaggingView: View {
                     }
                 }
             }
-            .alert("location_access_denied".localized(comment: "Location access denied"), isPresented: $locationManager.showGPSDeniedAlert) {
-                Button("close".localized(comment: "Close"), role: .cancel) { }
-                Button("settings".localized(comment: "Settings"), role: nil) { openSettings() }
-            } message: {
-                Text("location_access_denied_text".localized(comment: "Please enable location access in settings."))
-            }
         } /* NavigationStack */
         .onAppear{
             locationManager.updateLocationServiceStatus()

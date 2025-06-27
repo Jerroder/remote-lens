@@ -80,17 +80,26 @@ struct ContentView: View {
                 }
             }
         )
-        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnRemoveFromiPhoneMenu) {
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: Binding(
+            get: { bleManager.warnRemoveFromiPhoneMenu },
+            set: { newValue in bleManager.warnRemoveFromiPhoneMenu = newValue}
+        )) {
             Button("close".localized(comment: "Close"), role: .cancel) { }
         } message: {
             Text("remove_from_iphone_menu_text".localized(comment: "Please remove the camera from your iPhone's list"))
         }
-        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnRemoveFromCameraMenu) {
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: Binding(
+            get: { bleManager.warnRemoveFromCameraMenu },
+            set: { newValue in bleManager.warnRemoveFromCameraMenu = newValue }
+        )) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("remove_from_camera_menu_text".localized(comment: "Please remove this iPhone from your camera’s list"))
         }
-        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnCameraTurnedOff) {
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: Binding(
+            get: { bleManager.warnCameraTurnedOff },
+            set: { newValue in bleManager.warnCameraTurnedOff = newValue }
+        )) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("camera_turned_off_text".localized(comment: "Please make sure the camera is turned on and in range."))

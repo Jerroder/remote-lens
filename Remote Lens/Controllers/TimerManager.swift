@@ -8,7 +8,7 @@
 import Foundation
 
 class TimerManager: ObservableObject {
-    @Published var timer: Timer?
+    @Published private var timer: Timer?
 
     func startTimer(interval: TimeInterval, action: @escaping () -> Void) {
         stopTimer()

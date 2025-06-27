@@ -230,7 +230,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Couldn’t connect to the camera"
+            "value" : "Could not connect to the camera"
           }
         },
         "es" : {

@@ -8,21 +8,78 @@
 import CoreLocation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published var locationStatus: CLAuthorizationStatus?
-    @Published var locationDataReceived = false
-    @Published var isLoading = false
-    @Published var isLocationServiceEnabled = false
+    @Published var _locationStatus: CLAuthorizationStatus?
+    @Published var _locationDataReceived = false
+    @Published var _isLoading = false
+    @Published var _isLocationServiceEnabled = false
     
-    @Published var isGeotagginEnabled: Bool = false
-    @Published var showGPSDeniedAlert: Bool = false
+    @Published var _isGeotagginEnabled: Bool = false
+    @Published var _showGPSDeniedAlert: Bool = false
     
-    @Published var lastLocation: CLLocation?
-    @Published var elevation: CLLocationDistance?
+    @Published var _lastLocation: CLLocation?
+    @Published var _elevation: CLLocationDistance?
     
     private let locationManager = CLLocationManager()
     
     private var locationUpdateCompletion: ((CLLocationCoordinate2D?, CLLocationDistance?) -> Void)?
     private var isAsync: Bool = false
+    
+    var locationStatus: CLAuthorizationStatus? {
+        get {
+            return _locationStatus
+        }
+    }
+    
+    var locationDataReceived: Bool {
+        get {
+            return _locationDataReceived
+        }
+        set {
+            _locationDataReceived = newValue
+        }
+    }
+    
+    var isLoading: Bool {
+        get {
+            return _isLoading
+        }
+    }
+    
+    var isLocationServiceEnabled: Bool {
+        get {
+            return _isLocationServiceEnabled
+        }
+    }
+    
+    var isGeotagginEnabled: Bool {
+        get {
+            return _isGeotagginEnabled
+        }
+        set {
+            _isGeotagginEnabled = newValue
+        }
+    }
+    
+    var showGPSDeniedAlert: Bool {
+        get {
+            return _showGPSDeniedAlert
+        }
+        set {
+            _showGPSDeniedAlert = newValue
+        }
+    }
+    
+    var lastLocation: CLLocation? {
+        get {
+            return _lastLocation
+        }
+    }
+    
+    var elevation: CLLocationDistance? {
+        get {
+            return _elevation
+        }
+    }
     
     override init() {
         super.init()
@@ -40,15 +97,15 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         if isAsync {
             locationUpdateCompletion?(location.coordinate, location.altitude)
         }
-        locationDataReceived = true
-        isLoading = false
+        _locationDataReceived = true
+        _isLoading = false
         
-        lastLocation = location
-        elevation = location.altitude
+        _lastLocation = location
+        _elevation = location.altitude
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        locationStatus = status
+        _locationStatus = status
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -69,14 +126,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     private func requestSingleLocationUpdate() {
-        isLoading = true
-        locationDataReceived = false
+        _isLoading = true
+        _locationDataReceived = false
         locationManager.requestLocation()
     }
     
     private func requestSingleLocationUpdate(completion: @escaping (CLLocationCoordinate2D?, CLLocationDistance?) -> Void) {
-        isLoading = true
-        locationDataReceived = false
+        _isLoading = true
+        _locationDataReceived = false
         locationUpdateCompletion = completion
         locationManager.requestLocation()
     }
@@ -93,10 +150,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func updateLocationServiceStatus() {
-        if locationStatus == .denied {
-            isLocationServiceEnabled = false
+        if _locationStatus == .denied {
+            _isLocationServiceEnabled = false
         } else {
-            isLocationServiceEnabled = true
+            _isLocationServiceEnabled = true
         }
     }
     
@@ -107,19 +164,19 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-    private func getLocationAndElevation() -> (latitude: Data?, longitude: Data?, elevation: Data?) {
-        guard let location = lastLocation else {
+    private func getLocationAndElevation() -> (latitude: Data?, longitude: Data?, _elevation: Data?) {
+        guard let location = _lastLocation else {
             print("Location data is not available.")
             return (nil, nil, nil)
         }
 
         let latitude = Float(location.coordinate.latitude)
         let longitude = Float(location.coordinate.longitude)
-        let elevation = Float(location.altitude)
+        let _elevation = Float(location.altitude)
 
         var dataLatitude = floatToData(latitude)
         var dataLongitude = floatToData(longitude)
-        var dataElevation = floatToData(elevation)
+        var dataElevation = floatToData(_elevation)
 
         if latitude >= 0 {
             dataLatitude.insert(0x4E, at: 0)
@@ -133,7 +190,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             dataLongitude.insert(0x57, at: 0)
         }
 
-        if elevation >= 0 {
+        if _elevation >= 0 {
             dataElevation.insert(0x2B, at: 0)
         } else {
             dataElevation.insert(0x2D, at: 0)
@@ -146,16 +203,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         requestSingleLocationUpdate()
         
         var data: Data = Data([0x04])
-        if lastLocation != nil {
+        if _lastLocation != nil {
             let (dataLatitude, dataLongitude, dataElevation) = getLocationAndElevation()
             
             data.append(dataLatitude!)
             data.append(dataLongitude!)
             data.append(dataElevation!)
         } else {
-            if let status = locationStatus {
+            if let status = _locationStatus {
                 if status == .denied {
-                    showGPSDeniedAlert = true
+                    _showGPSDeniedAlert = true
                 }
             }
             
@@ -198,10 +255,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                     data.insert(0x2D, at: 11) // ASCII for '-'
                 }
             } else {
-                if let status = self.locationStatus {
+                if let status = self._locationStatus {
                     if status == .denied {
-                        self.showGPSDeniedAlert = true
-                        self.isLocationServiceEnabled = false
+                        self._showGPSDeniedAlert = true
+                        self._isLocationServiceEnabled = false
                     }
                 }
                 data.append(Data(count: 15))

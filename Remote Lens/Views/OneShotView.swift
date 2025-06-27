@@ -147,6 +147,17 @@ struct OneShotView: View {
                                                 
                                                 invalidateTimers()
                                                 startDecreaseAnimation()
+                                                
+                                                // Prevent the popup from hijacking the view and not trigger .onEnded
+                                                if locationManager.showGPSDeniedAlert {
+                                                    if isBurstMode {
+                                                        bleManager.releaseShutter()
+                                                    }
+                                                    isPressed = false
+                                                    invalidateTimers()
+                                                    startIncreaseAnimation()
+                                                    initialTouchPosition = .zero
+                                                }
                                             }
                                         }
                                         .onEnded { _ in
