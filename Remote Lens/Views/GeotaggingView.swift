@@ -243,7 +243,7 @@ struct GeotaggingWhenTriggeredView: View {
         
         if selectedOption == 3 {
             VStack(spacing: 10) {
-                Toggle("Wait for GPS to get a fix before taking the photo", isOn: $waitForFix)
+                Toggle("wait_for_gps".localized(comment: "Wait for GPS to get a fix before taking the photo"), isOn: $waitForFix)
                     .padding()
                     .onChange(of: waitForFix) { _, newValue in
                         UserDefaults.standard.set(waitForFix, forKey: "waitForFix")

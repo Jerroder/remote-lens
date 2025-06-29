@@ -25,6 +25,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published private var _isConnected: Bool = false
     @Published private var _isBluetoothEnabled: Bool = false
     @Published private var _isShootingMode: Bool = true
+    @Published private var _isRecording: Bool = false
     @Published private var _hasAutofocusFailed: Bool = false
     @Published private var _isGPSEnabledOnCamera: Bool = false
     @Published private var _warnRemoveFromCameraMenu: Bool = false
@@ -98,6 +99,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     var isShootingMode: Bool {
         get {
             return _isShootingMode
+        }
+    }
+    
+    var isRecording: Bool {
+        get {
+            return _isRecording
         }
     }
     
@@ -365,7 +372,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             }
         } else if characteristic.uuid == autofocusNavigationCharacteristic?.uuid {
             if let value = characteristic.value {
-                if value == Data([0x01, 0x01, 0x01]) {
+                if value == Data([0x01, 0x01, 0x01]) && !_isRecording {
                     _hasAutofocusFailed = true
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
@@ -515,6 +522,31 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
         
         let releaseData = Data([0x00, 0x02])
+        _connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
+    }
+    
+    func startRecording() {
+        guard let shutterCharacteristic = shutterCharacteristic else {
+            print("Shutter characteristic not found.")
+            return
+        }
+        
+        _isRecording = true
+        _hasAutofocusFailed = false
+        
+        let pressData = Data([0x00, 0x10])
+        _connectedPeripheral?.writeValue(pressData, for: shutterCharacteristic, type: .withResponse)
+    }
+    
+    func stopRecording() {
+        guard let shutterCharacteristic = shutterCharacteristic else {
+            print("Shutter characteristic not found.")
+            return
+        }
+        
+        _isRecording = false
+        
+        let releaseData = Data([0x00, 0x11])
         _connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
     }
     

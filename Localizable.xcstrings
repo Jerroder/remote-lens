@@ -1027,8 +1027,17 @@
         }
       }
     },
-    "Wait for GPS to get a fix before taking the photo" : {
-
+    "video_mode" : {
+      "comment" : "Video mode",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video mode"
+          }
+        }
+      }
     },
     "wait_between_photos" : {
       "comment" : "Wait between photos",
@@ -1056,6 +1065,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Attente entre les photos"
+          }
+        }
+      }
+    },
+    "wait_for_gps" : {
+      "comment" : "Wait for GPS to get a fix before taking the photo",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wait for GPS to get a fix before taking the photo"
           }
         }
       }

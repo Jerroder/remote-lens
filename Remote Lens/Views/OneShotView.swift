@@ -7,6 +7,38 @@
 
 import SwiftUI
 
+struct OuterCircle: Shape {
+    var outerRadiusFactor: CGFloat = 0.7
+    
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.width / 2, y: rect.height / 2)
+        let outerRadius: CGFloat = min(rect.width, rect.height) * outerRadiusFactor
+        
+        var path = Path()
+        
+        // Draw the outer circle
+        path.addArc(center: center, radius: outerRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
+        
+        return path
+    }
+}
+
+struct FilledInnerCircle: Shape {
+    var innerRadiusFactor: CGFloat
+    
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.width / 2, y: rect.height / 2)
+        let innerRadius: CGFloat = min(rect.width, rect.height) * innerRadiusFactor
+        
+        var path = Path()
+        
+        // Draw the inner circle
+        path.addArc(center: center, radius: innerRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
+        
+        return path
+    }
+}
+
 struct ShutterBlades: Shape {
     var innerRadiusFactor: CGFloat
     var outerRadiusFactor: CGFloat = 0.7
@@ -64,6 +96,7 @@ struct OneShotView: View {
     @Binding var selectedOption: Int
     
     @State private var isButtonPressed = false
+    @State private var isVideoMode: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
     
     @State private var innerRadiusFactor: CGFloat = 0.5
@@ -83,18 +116,35 @@ struct OneShotView: View {
             VStack {
                 if bleManager.isShootingMode {
                     VStack {
-                        Toggle("burst_mode".localized(comment: "Burst mode"), isOn: $isBurstMode)
-                            .padding()
-                            .onChange(of: isBurstMode) { oldValue, newValue in
-                                UserDefaults.standard.set(newValue, forKey: "isBurstMode")
+                        Toggle("video_mode".localized(comment: "Video mode"), isOn: $isVideoMode)
+                            .padding(.horizontal)
+                            .onChange(of: isVideoMode) { oldValue, newValue in
+                                UserDefaults.standard.set(newValue, forKey: "isVideoMode")
                             }
+                        if !isVideoMode {
+                            Toggle("burst_mode".localized(comment: "Burst mode"), isOn: $isBurstMode)
+                                .padding(.horizontal)
+                                .onChange(of: isBurstMode) { oldValue, newValue in
+                                    UserDefaults.standard.set(newValue, forKey: "isBurstMode")
+                                }
+                        }
                         
                         Spacer()
                         
                         ZStack {
-                            ShutterBlades(innerRadiusFactor: innerRadiusFactor)
-                                .stroke(lineWidth: 3)
-                                .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
+                            if !isVideoMode {
+                                ShutterBlades(innerRadiusFactor: innerRadiusFactor)
+                                    .stroke(lineWidth: 3)
+                                    .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
+                            } else {
+                                OuterCircle()
+                                    .stroke(lineWidth: 3)
+                                    .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
+                                
+                                FilledInnerCircle(innerRadiusFactor: innerRadiusFactor)
+                                    .fill(Color.red)
+                                    .frame(width: geometry.size.width * 0.3, height: geometry.size.width * 0.3)
+                            }
                             
                             Circle()
                                 .fill(Color.clear)
@@ -116,10 +166,20 @@ struct OneShotView: View {
                                                 if !isPressed {
                                                     isPressed = true
                                                     
-                                                    if selectedOption == 3 {
-                                                        if waitForFix {
-                                                            locationManager.getGPSData { data in
-                                                                bleManager.writeGPSValue(data: data)
+                                                    if !isVideoMode {
+                                                        if selectedOption == 3 {
+                                                            if waitForFix {
+                                                                locationManager.getGPSData { data in
+                                                                    bleManager.writeGPSValue(data: data)
+                                                                    
+                                                                    if !isBurstMode {
+                                                                        bleManager.takePhoto()
+                                                                    } else if isBurstMode {
+                                                                        bleManager.pressShutter()
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                bleManager.writeGPSValue(data: locationManager.getGPSData())
                                                                 
                                                                 if !isBurstMode {
                                                                     bleManager.takePhoto()
@@ -128,8 +188,6 @@ struct OneShotView: View {
                                                                 }
                                                             }
                                                         } else {
-                                                            bleManager.writeGPSValue(data: locationManager.getGPSData())
-                                                            
                                                             if !isBurstMode {
                                                                 bleManager.takePhoto()
                                                             } else if isBurstMode {
@@ -137,10 +195,10 @@ struct OneShotView: View {
                                                             }
                                                         }
                                                     } else {
-                                                        if !isBurstMode {
-                                                            bleManager.takePhoto()
-                                                        } else if isBurstMode {
-                                                            bleManager.pressShutter()
+                                                        if bleManager.isRecording {
+                                                            bleManager.stopRecording()
+                                                        } else {
+                                                            bleManager.startRecording()
                                                         }
                                                     }
                                                 }
@@ -161,8 +219,10 @@ struct OneShotView: View {
                                             }
                                         }
                                         .onEnded { _ in
-                                            if isBurstMode {
-                                                bleManager.releaseShutter()
+                                            if !isVideoMode {
+                                                if isBurstMode {
+                                                    bleManager.releaseShutter()
+                                                }
                                             }
                                             isPressed = false
                                             invalidateTimers()
@@ -170,6 +230,8 @@ struct OneShotView: View {
                                             initialTouchPosition = .zero
                                         }
                                 )
+                            
+                            Spacer()
                         } /* ZStack */
                         
                         Spacer()
@@ -240,23 +302,60 @@ struct OneShotView: View {
                 
                 HStack {
                     if bleManager.isShootingMode {
+//                        if !bleManager.isRecording {
+//                            Button(action: {
+//                                if bleManager.isRecording {
+//                                    bleManager.stopRecording()
+//                                } else {
+//                                    bleManager.startRecording()
+//                                }
+//                            }) {
+//                                CustomStartRecordingIcon(width: geometry.size.width * 0.07)
+//                                    .padding()
+//                                    .background(Color(UIColor.secondarySystemBackground))
+//                                    .cornerRadius(10)
+//                            }
+//                            .padding()
+//                        } else {
+//                            Button(action: {
+//                                if bleManager.isRecording {
+//                                    withAnimation {
+//                                        bleManager.stopRecording()
+//                                    }
+//                                } else {
+//                                    withAnimation {
+//                                        bleManager.startRecording()
+//                                    }
+//                                }
+//                            }) {
+//                                Image(systemName: "record.circle.fill")
+//                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+//                                    .padding()
+//                                    .background(Color(UIColor.secondarySystemBackground))
+//                                    .foregroundColor(Color(UIColor.label))
+//                                    .cornerRadius(10)
+//                            }
+//                            .padding()
+//                        }
+                        
                         if bleManager.hasAutofocusFailed || locationManager.isGeotagginEnabled {
-                            Spacer()
                             VStack {
-                                Text(bleManager.hasAutofocusFailed ? "could_not_autofocus".localized(comment: "Could not autofocus") : "")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.red)
-                                
-                                if !locationManager.isLocationServiceEnabled {
-                                    Text("location_access_denied".localized(comment: "Location access denied"))
-                                        .fontWeight(.bold)
+                                if bleManager.hasAutofocusFailed {
+                                    Text("could_not_autofocus".localized(comment: "Could not autofocus"))
+                                        .font(.system(size: geometry.size.width * 0.04, weight: .bold))
                                         .foregroundColor(.red)
-                                } else if locationManager.isLoading {
+                                }
+                                if !locationManager.isLocationServiceEnabled && locationManager.isGeotagginEnabled {
+                                    Text("location_access_denied".localized(comment: "Location access denied"))
+                                        .font(.system(size: geometry.size.width * 0.04, weight: .bold))
+                                        .foregroundColor(.red)
+                                } else if locationManager.isLoading && locationManager.isGeotagginEnabled {
                                     Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
-                                        .fontWeight(.semibold)
+                                        .font(.system(size: geometry.size.width * 0.04, weight: .semibold))
                                         .foregroundColor(.orange)
                                 }
                             }
+                            .frame(maxWidth: .infinity)
                         } else {
                             Spacer()
                         }
@@ -293,7 +392,7 @@ struct OneShotView: View {
                     Button(action: {
                         bleManager.switchMode()
                     }) {
-                        Image(systemName: !bleManager.isShootingMode ? "camera.aperture" : "play.square")
+                        Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
                             .font(.system(size: geometry.size.width * 0.07, weight: .thin))
                             .padding()
                             .background(Color(UIColor.secondarySystemBackground))
