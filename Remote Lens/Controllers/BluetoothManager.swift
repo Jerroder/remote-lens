@@ -373,7 +373,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         } else if characteristic.uuid == autofocusNavigationCharacteristic?.uuid {
             if let value = characteristic.value {
                 if value == Data([0x01, 0x01, 0x01]) && !_isRecording {
+                    print("010101 and")
                     _hasAutofocusFailed = true
+                } else if value == Data([0x01, 0x01, 0x01]) {
+                    print("010101")
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for autofocusNavigationCharacteristic: \(hexString)")

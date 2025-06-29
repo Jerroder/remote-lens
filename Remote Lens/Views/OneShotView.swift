@@ -24,11 +24,11 @@ struct OuterCircle: Shape {
 }
 
 struct FilledInnerCircle: Shape {
-    var innerRadiusFactor: CGFloat
+    var recordRadiusFactor: CGFloat
     
     func path(in rect: CGRect) -> Path {
         let center = CGPoint(x: rect.width / 2, y: rect.height / 2)
-        let innerRadius: CGFloat = min(rect.width, rect.height) * innerRadiusFactor
+        let innerRadius: CGFloat = min(rect.width, rect.height) * recordRadiusFactor
         
         var path = Path()
         
@@ -99,9 +99,13 @@ struct OneShotView: View {
     @State private var isVideoMode: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
     
-    @State private var innerRadiusFactor: CGFloat = 0.5
-    @State private var decreaseTimer: Timer?
-    @State private var increaseTimer: Timer?
+    @State private var shutterRadiusFactor: CGFloat = 0.7
+    @State private var decreaseShutterTimer: Timer?
+    @State private var increaseShutterTimer: Timer?
+    
+    @State private var recordRadiusFactor: CGFloat = 0.0
+    @State private var decreaseRecordTimer: Timer?
+    @State private var increaseRecordTimer: Timer?
     
     @State private var isPressed: Bool = false
     @State private var isSwiping: Bool = false
@@ -127,23 +131,34 @@ struct OneShotView: View {
                                 .onChange(of: isBurstMode) { oldValue, newValue in
                                     UserDefaults.standard.set(newValue, forKey: "isBurstMode")
                                 }
+                        } else {
+                            Spacer()
+                                .frame(height: 40) // temporary
                         }
                         
                         Spacer()
                         
                         ZStack {
                             if !isVideoMode {
-                                ShutterBlades(innerRadiusFactor: innerRadiusFactor)
+                                ShutterBlades(innerRadiusFactor: shutterRadiusFactor)
                                     .stroke(lineWidth: 3)
                                     .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
+                                    .onAppear {
+                                        transitionFromVideo()
+                                        transitionToStills()
+                                    }
                             } else {
                                 OuterCircle()
                                     .stroke(lineWidth: 3)
                                     .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
                                 
-                                FilledInnerCircle(innerRadiusFactor: innerRadiusFactor)
+                                FilledInnerCircle(recordRadiusFactor: recordRadiusFactor)
                                     .fill(Color.red)
                                     .frame(width: geometry.size.width * 0.3, height: geometry.size.width * 0.3)
+                                    .onAppear {
+                                        transitionFromStills()
+                                        transitionToVideo()
+                                    }
                             }
                             
                             Circle()
@@ -203,7 +218,7 @@ struct OneShotView: View {
                                                     }
                                                 }
                                                 
-                                                invalidateTimers()
+                                                invalidateShutterTimers()
                                                 startDecreaseAnimation()
                                                 
                                                 // Prevent the popup from hijacking the view and not trigger .onEnded
@@ -212,7 +227,7 @@ struct OneShotView: View {
                                                         bleManager.releaseShutter()
                                                     }
                                                     isPressed = false
-                                                    invalidateTimers()
+                                                    invalidateShutterTimers()
                                                     startIncreaseAnimation()
                                                     initialTouchPosition = .zero
                                                 }
@@ -225,7 +240,7 @@ struct OneShotView: View {
                                                 }
                                             }
                                             isPressed = false
-                                            invalidateTimers()
+                                            invalidateShutterTimers()
                                             startIncreaseAnimation()
                                             initialTouchPosition = .zero
                                         }
@@ -405,27 +420,72 @@ struct OneShotView: View {
         } /* GeometryReader */
     } /* body */
     
-    private func invalidateTimers() {
-        decreaseTimer?.invalidate()
-        increaseTimer?.invalidate()
+    private func invalidateShutterTimers() {
+        decreaseShutterTimer?.invalidate()
+        increaseShutterTimer?.invalidate()
+    }
+    
+    private func invalidateRecordTimers() {
+        decreaseRecordTimer?.invalidate()
+        increaseRecordTimer?.invalidate()
     }
     
     private func startDecreaseAnimation() {
-        decreaseTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
-            innerRadiusFactor -= 0.01
-            if innerRadiusFactor <= 0 {
-                innerRadiusFactor = 0
-                invalidateTimers()
+        decreaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
+            shutterRadiusFactor -= 0.01
+            if shutterRadiusFactor <= 0 {
+                shutterRadiusFactor = 0
+                invalidateShutterTimers()
             }
         }
     }
     
     private func startIncreaseAnimation() {
-        increaseTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
-            innerRadiusFactor += 0.01
-            if innerRadiusFactor >= 0.5 {
-                innerRadiusFactor = 0.5
-                invalidateTimers()
+        increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
+            shutterRadiusFactor += 0.01
+            if shutterRadiusFactor >= 0.5 {
+                shutterRadiusFactor = 0.5
+                invalidateShutterTimers()
+            }
+        }
+    }
+    
+    private func transitionFromStills() {
+        increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
+            shutterRadiusFactor += 0.01
+            if shutterRadiusFactor >= 0.7 {
+                shutterRadiusFactor = 0.7
+                invalidateShutterTimers()
+            }
+        }
+    }
+    
+    private func transitionToStills() {
+        decreaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
+            shutterRadiusFactor -= 0.01
+            if shutterRadiusFactor <= 0.5 {
+                shutterRadiusFactor = 0.5
+                invalidateShutterTimers()
+            }
+        }
+    }
+    
+    private func transitionToVideo() {
+        increaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.005, repeats: true) { [self] _ in
+            recordRadiusFactor += 0.01
+            if recordRadiusFactor >= 0.5 {
+                recordRadiusFactor = 0.5
+                invalidateRecordTimers()
+            }
+        }
+    }
+    
+    private func transitionFromVideo() {
+        decreaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
+            recordRadiusFactor -= 0.01
+            if recordRadiusFactor <= 0.0 {
+                recordRadiusFactor = 0.0
+                invalidateRecordTimers()
             }
         }
     }
