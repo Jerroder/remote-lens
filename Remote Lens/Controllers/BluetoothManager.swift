@@ -327,6 +327,9 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                         DispatchQueue.main.async {
                             self._isConnecting = false
                         }
+                        
+                        let wakeCamera = Data([0x03]) // Needed so that the camera notifies when recording starts
+                        peripheral.writeValue(wakeCamera, for: self.modeChangeCharacteristic!, type: .withResponse)
                     }
                 }
                 
@@ -372,11 +375,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             }
         } else if characteristic.uuid == autofocusNavigationCharacteristic?.uuid {
             if let value = characteristic.value {
-                if value == Data([0x01, 0x01, 0x01]) && !_isRecording {
-                    print("010101 and")
+                if value == Data([0x01, 0x01, 0x01]) && isRecording {
+                    _isRecording = false
+                } else if value == Data([0x01, 0x01, 0x01]) && !isRecording {
                     _hasAutofocusFailed = true
-                } else if value == Data([0x01, 0x01, 0x01]) {
-                    print("010101")
+                } else if value == Data([0x01, 0x01, 0x02]) {
+                    _isRecording = true
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for autofocusNavigationCharacteristic: \(hexString)")
@@ -539,7 +543,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             return
         }
         
-        _isRecording = true
         _hasAutofocusFailed = false
         
          let pressData = Data([0x00, 0x10])
@@ -551,8 +554,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             print("Shutter characteristic not found.")
             return
         }
-        
-        _isRecording = false
         
          let releaseData = Data([0x00, 0x11])
          _connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)

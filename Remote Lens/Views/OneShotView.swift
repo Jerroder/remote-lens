@@ -99,8 +99,6 @@ struct OneShotView: View {
     
     @State private var initialTouchPosition: CGSize = .zero
     
-    @State private var hexFields: [String] = Array(repeating: "", count: 16)
-    
     var body: some View {
         GeometryReader { geometry in
             VStack {
@@ -213,7 +211,7 @@ struct OneShotView: View {
                                                     }
                                                 }
                                                 
-                                                // Prevent the popup from hijacking the view and not trigger .onEnded
+                                                // Prevent a popup from hijacking the view and not trigger .onEnded
                                                 if locationManager.showGPSDeniedAlert {
                                                     if isBurstMode {
                                                         bleManager.releaseShutter()
@@ -307,71 +305,77 @@ struct OneShotView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 } /* if */
                 
-                HStack {
-                    if bleManager.isShootingMode {
-                        if bleManager.hasAutofocusFailed || locationManager.isGeotagginEnabled {
-                            VStack {
-                                if bleManager.hasAutofocusFailed {
-                                    Text("could_not_autofocus".localized(comment: "Could not autofocus"))
-                                        .font(.system(size: geometry.size.width * 0.04, weight: .bold))
-                                        .foregroundColor(.red)
+                ZStack {
+                    HStack {
+                        if bleManager.isShootingMode {
+                            if bleManager.hasAutofocusFailed || locationManager.isGeotagginEnabled {
+                                VStack {
+                                    if bleManager.hasAutofocusFailed {
+                                        Text("could_not_autofocus".localized(comment: "Could not autofocus"))
+                                            .font(.system(size: geometry.size.width * 0.04, weight: .bold))
+                                            .foregroundColor(.red)
+                                    }
+                                    if !locationManager.isLocationServiceEnabled && locationManager.isGeotagginEnabled {
+                                        Text("location_access_denied".localized(comment: "Location access denied"))
+                                            .font(.system(size: geometry.size.width * 0.04, weight: .bold))
+                                            .foregroundColor(.red)
+                                    } else if locationManager.isLoading && locationManager.isGeotagginEnabled {
+                                        Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
+                                            .font(.system(size: geometry.size.width * 0.04, weight: .semibold))
+                                            .foregroundColor(.orange)
+                                    }
                                 }
-                                if !locationManager.isLocationServiceEnabled && locationManager.isGeotagginEnabled {
-                                    Text("location_access_denied".localized(comment: "Location access denied"))
-                                        .font(.system(size: geometry.size.width * 0.04, weight: .bold))
-                                        .foregroundColor(.red)
-                                } else if locationManager.isLoading && locationManager.isGeotagginEnabled {
-                                    Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
-                                        .font(.system(size: geometry.size.width * 0.04, weight: .semibold))
-                                        .foregroundColor(.orange)
-                                }
+                                .frame(maxWidth: .infinity)
                             }
-                            .frame(maxWidth: .infinity)
                         } else {
+                            Button(action: {
+                                bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomOut)
+                            }) {
+                                Image(systemName: "minus.magnifyingglass")
+                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                    .padding()
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .foregroundColor(Color(UIColor.label))
+                                    .cornerRadius(10)
+                            }
+                            .padding()
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomIn)
+                            }) {
+                                Image(systemName: "plus.magnifyingglass")
+                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                    .padding()
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .foregroundColor(Color(UIColor.label))
+                                    .cornerRadius(10)
+                            }
+                            .padding()
+                            
+                            Spacer()
+                            Spacer()
                             Spacer()
                         }
-                    } else {
-                        Button(action: {
-                            bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomOut)
-                        }) {
-                            Image(systemName: "minus.magnifyingglass")
-                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                                .padding()
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .foregroundColor(Color(UIColor.label))
-                                .cornerRadius(10)
-                        }
-                        .padding()
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomIn)
-                        }) {
-                            Image(systemName: "plus.magnifyingglass")
-                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                                .padding()
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .foregroundColor(Color(UIColor.label))
-                                .cornerRadius(10)
-                        }
-                        .padding()
-                        
-                        Spacer()
-                    }
+                    } /* HStack */
                     
-                    Button(action: {
-                        bleManager.switchMode()
-                    }) {
-                        Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
-                            .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                            .padding()
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .foregroundColor(Color(UIColor.label))
-                            .cornerRadius(10)
+                    HStack {
+                        Spacer()
+                        
+                        Button(action: {
+                            bleManager.switchMode()
+                        }) {
+                            Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
+                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                .padding()
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .foregroundColor(Color(UIColor.label))
+                                .cornerRadius(10)
+                        }
+                        .padding()
                     }
-                    .padding()
-                } /* HStack */
+                } /* ZStack */
             } /* VStack */
         } /* GeometryReader */
     } /* body */
