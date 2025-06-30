@@ -528,6 +528,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         _connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
     }
     
+    func takePhoto() {
+        pressShutter()
+        releaseShutter()
+    }
+    
     func startRecording() {
         guard let shutterCharacteristic = shutterCharacteristic else {
             print("Shutter characteristic not found.")
@@ -537,8 +542,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         _isRecording = true
         _hasAutofocusFailed = false
         
-        let pressData = Data([0x00, 0x10])
-        _connectedPeripheral?.writeValue(pressData, for: shutterCharacteristic, type: .withResponse)
+         let pressData = Data([0x00, 0x10])
+         _connectedPeripheral?.writeValue(pressData, for: shutterCharacteristic, type: .withResponse)
     }
     
     func stopRecording() {
@@ -549,13 +554,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         _isRecording = false
         
-        let releaseData = Data([0x00, 0x11])
-        _connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
-    }
-    
-    func takePhoto() {
-        pressShutter()
-        releaseShutter()
+         let releaseData = Data([0x00, 0x11])
+         _connectedPeripheral?.writeValue(releaseData, for: shutterCharacteristic, type: .withResponse)
     }
     
     private func switchToPlayback() {

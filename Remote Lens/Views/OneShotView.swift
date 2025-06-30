@@ -23,22 +23,6 @@ struct OuterCircle: Shape {
     }
 }
 
-struct FilledInnerCircle: Shape {
-    var recordRadiusFactor: CGFloat
-    
-    func path(in rect: CGRect) -> Path {
-        let center = CGPoint(x: rect.width / 2, y: rect.height / 2)
-        let innerRadius: CGFloat = min(rect.width, rect.height) * recordRadiusFactor
-        
-        var path = Path()
-        
-        // Draw the inner circle
-        path.addArc(center: center, radius: innerRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
-        
-        return path
-    }
-}
-
 struct ShutterBlades: Shape {
     var innerRadiusFactor: CGFloat
     var outerRadiusFactor: CGFloat = 0.7
@@ -96,14 +80,16 @@ struct OneShotView: View {
     @Binding var selectedOption: Int
     
     @State private var isButtonPressed = false
-    @State private var isVideoMode: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
+    @State private var isVideoMode: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
+    @State private var isVideoModeToggleDisabled = false
     
     @State private var shutterRadiusFactor: CGFloat = 0.7
     @State private var decreaseShutterTimer: Timer?
     @State private var increaseShutterTimer: Timer?
     
-    @State private var recordRadiusFactor: CGFloat = 0.0
+    @State private var recordSizeFactor: CGFloat = 0.0
+    @State private var recordRadiusFactor: CGFloat = 1.0
     @State private var decreaseRecordTimer: Timer?
     @State private var increaseRecordTimer: Timer?
     
@@ -125,6 +111,7 @@ struct OneShotView: View {
                             .onChange(of: isVideoMode) { oldValue, newValue in
                                 UserDefaults.standard.set(newValue, forKey: "isVideoMode")
                             }
+                            .disabled(isVideoModeToggleDisabled)
                         if !isVideoMode {
                             Toggle("burst_mode".localized(comment: "Burst mode"), isOn: $isBurstMode)
                                 .padding(.horizontal)
@@ -152,9 +139,10 @@ struct OneShotView: View {
                                     .stroke(lineWidth: 3)
                                     .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
                                 
-                                FilledInnerCircle(recordRadiusFactor: recordRadiusFactor)
+                                Rectangle()
                                     .fill(Color.red)
-                                    .frame(width: geometry.size.width * 0.3, height: geometry.size.width * 0.3)
+                                    .cornerRadius(geometry.size.width * recordRadiusFactor)
+                                    .frame(width: geometry.size.width * recordSizeFactor, height: geometry.size.width * recordSizeFactor)
                                     .onAppear {
                                         transitionFromStills()
                                         transitionToVideo()
@@ -180,6 +168,7 @@ struct OneShotView: View {
                                             if deltaX < 1 && deltaY < 1 {
                                                 if !isPressed {
                                                     isPressed = true
+                                                    invalidateShutterTimers()
                                                     
                                                     if !isVideoMode {
                                                         if selectedOption == 3 {
@@ -209,17 +198,20 @@ struct OneShotView: View {
                                                                 bleManager.pressShutter()
                                                             }
                                                         }
+                                                        
+                                                        startPressAnimation()
                                                     } else {
                                                         if bleManager.isRecording {
+                                                            isVideoModeToggleDisabled = false
+                                                            stopRecordAnimation()
                                                             bleManager.stopRecording()
                                                         } else {
+                                                            isVideoModeToggleDisabled = true
+                                                            startRecordAnimation()
                                                             bleManager.startRecording()
                                                         }
                                                     }
                                                 }
-                                                
-                                                invalidateShutterTimers()
-                                                startDecreaseAnimation()
                                                 
                                                 // Prevent the popup from hijacking the view and not trigger .onEnded
                                                 if locationManager.showGPSDeniedAlert {
@@ -228,7 +220,7 @@ struct OneShotView: View {
                                                     }
                                                     isPressed = false
                                                     invalidateShutterTimers()
-                                                    startIncreaseAnimation()
+                                                    startReleaseAnimation()
                                                     initialTouchPosition = .zero
                                                 }
                                             }
@@ -238,10 +230,10 @@ struct OneShotView: View {
                                                 if isBurstMode {
                                                     bleManager.releaseShutter()
                                                 }
+                                                invalidateShutterTimers()
+                                                startReleaseAnimation()
                                             }
                                             isPressed = false
-                                            invalidateShutterTimers()
-                                            startIncreaseAnimation()
                                             initialTouchPosition = .zero
                                         }
                                 )
@@ -317,42 +309,6 @@ struct OneShotView: View {
                 
                 HStack {
                     if bleManager.isShootingMode {
-//                        if !bleManager.isRecording {
-//                            Button(action: {
-//                                if bleManager.isRecording {
-//                                    bleManager.stopRecording()
-//                                } else {
-//                                    bleManager.startRecording()
-//                                }
-//                            }) {
-//                                CustomStartRecordingIcon(width: geometry.size.width * 0.07)
-//                                    .padding()
-//                                    .background(Color(UIColor.secondarySystemBackground))
-//                                    .cornerRadius(10)
-//                            }
-//                            .padding()
-//                        } else {
-//                            Button(action: {
-//                                if bleManager.isRecording {
-//                                    withAnimation {
-//                                        bleManager.stopRecording()
-//                                    }
-//                                } else {
-//                                    withAnimation {
-//                                        bleManager.startRecording()
-//                                    }
-//                                }
-//                            }) {
-//                                Image(systemName: "record.circle.fill")
-//                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-//                                    .padding()
-//                                    .background(Color(UIColor.secondarySystemBackground))
-//                                    .foregroundColor(Color(UIColor.label))
-//                                    .cornerRadius(10)
-//                            }
-//                            .padding()
-//                        }
-                        
                         if bleManager.hasAutofocusFailed || locationManager.isGeotagginEnabled {
                             VStack {
                                 if bleManager.hasAutofocusFailed {
@@ -430,7 +386,7 @@ struct OneShotView: View {
         increaseRecordTimer?.invalidate()
     }
     
-    private func startDecreaseAnimation() {
+    private func startPressAnimation() {
         decreaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
             shutterRadiusFactor -= 0.01
             if shutterRadiusFactor <= 0 {
@@ -440,11 +396,31 @@ struct OneShotView: View {
         }
     }
     
-    private func startIncreaseAnimation() {
+    private func startRecordAnimation() {
+        decreaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
+            recordRadiusFactor -= 0.01
+            if recordRadiusFactor <= 0.02 {
+                recordRadiusFactor = 0.02
+                invalidateShutterTimers()
+            }
+        }
+    }
+    
+    private func startReleaseAnimation() {
         increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
             shutterRadiusFactor += 0.01
             if shutterRadiusFactor >= 0.5 {
                 shutterRadiusFactor = 0.5
+                invalidateShutterTimers()
+            }
+        }
+    }
+    
+    private func stopRecordAnimation() {
+        increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
+            recordRadiusFactor += 0.01
+            if recordRadiusFactor >= recordSizeFactor * 0.5 {
+                recordRadiusFactor = recordSizeFactor * 0.5
                 invalidateShutterTimers()
             }
         }
@@ -471,10 +447,11 @@ struct OneShotView: View {
     }
     
     private func transitionToVideo() {
+        recordRadiusFactor = 0.3 * 0.5
         increaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.005, repeats: true) { [self] _ in
-            recordRadiusFactor += 0.01
-            if recordRadiusFactor >= 0.5 {
-                recordRadiusFactor = 0.5
+            recordSizeFactor += 0.01
+            if recordSizeFactor >= 0.3 {
+                recordSizeFactor = 0.3
                 invalidateRecordTimers()
             }
         }
@@ -482,9 +459,9 @@ struct OneShotView: View {
     
     private func transitionFromVideo() {
         decreaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
-            recordRadiusFactor -= 0.01
-            if recordRadiusFactor <= 0.0 {
-                recordRadiusFactor = 0.0
+            recordSizeFactor -= 0.01
+            if recordSizeFactor <= 0.0 {
+                recordSizeFactor = 0.0
                 invalidateRecordTimers()
             }
         }
