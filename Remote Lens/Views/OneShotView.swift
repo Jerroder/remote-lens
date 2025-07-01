@@ -82,6 +82,7 @@ struct OneShotView: View {
     @State private var isButtonPressed = false
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
     @State private var isVideoMode: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
+    @State private var isTransitioningToVideo: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
     @State private var isVideoModeToggleDisabled = false
     
     @State private var shutterRadiusFactor: CGFloat = 0.7
@@ -104,9 +105,22 @@ struct OneShotView: View {
             VStack {
                 if bleManager.isShootingMode {
                     VStack {
-                        Toggle("video_mode".localized(comment: "Video mode"), isOn: $isVideoMode)
+                        Toggle("video_mode".localized(comment: "Video mode"), isOn: Binding(
+                            get: { self.isTransitioningToVideo },
+                            set: { newValue in
+                                self.isTransitioningToVideo = newValue
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    self.isVideoMode = newValue
+                                }
+                            }
+                        ))
                             .padding(.horizontal)
-                            .onChange(of: isVideoMode) { oldValue, newValue in
+                            .onChange(of: isTransitioningToVideo) { oldValue, newValue in
+                                if !isVideoMode {
+                                    transitionFromStills()
+                                } else {
+                                    transitionFromVideo()
+                                }
                                 UserDefaults.standard.set(newValue, forKey: "isVideoMode")
                             }
                             .disabled(isVideoModeToggleDisabled)
@@ -129,7 +143,6 @@ struct OneShotView: View {
                                     .stroke(lineWidth: 3)
                                     .frame(width: geometry.size.width * 0.5, height: geometry.size.width * 0.5)
                                     .onAppear {
-                                        transitionFromVideo()
                                         transitionToStills()
                                     }
                             } else {
@@ -142,7 +155,6 @@ struct OneShotView: View {
                                     .cornerRadius(geometry.size.width * recordRadiusFactor)
                                     .frame(width: geometry.size.width * recordSizeFactor, height: geometry.size.width * recordSizeFactor)
                                     .onAppear {
-                                        transitionFromStills()
                                         transitionToVideo()
                                     }
                             }
@@ -411,7 +423,7 @@ struct OneShotView: View {
     }
     
     private func startReleaseAnimation() {
-        increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
+        increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.001, repeats: true) { [self] _ in
             shutterRadiusFactor += 0.01
             if shutterRadiusFactor >= 0.5 {
                 shutterRadiusFactor = 0.5
@@ -462,7 +474,7 @@ struct OneShotView: View {
     }
     
     private func transitionFromVideo() {
-        decreaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
+        decreaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.008, repeats: true) { [self] _ in
             recordSizeFactor -= 0.01
             if recordSizeFactor <= 0.0 {
                 recordSizeFactor = 0.0
