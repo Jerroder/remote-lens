@@ -124,7 +124,7 @@ struct OneShotView: View {
                                 UserDefaults.standard.set(newValue, forKey: "isVideoMode")
                             }
                             .disabled(isVideoModeToggleDisabled)
-                        if !isVideoMode {
+                        if !isTransitioningToVideo {
                             Toggle("burst_mode".localized(comment: "Burst mode"), isOn: $isBurstMode)
                                 .padding(.horizontal)
                                 .onChange(of: isBurstMode) { oldValue, newValue in
@@ -403,6 +403,7 @@ struct OneShotView: View {
     }
     
     private func startPressAnimation() {
+        decreaseShutterTimer?.invalidate()
         decreaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.002, repeats: true) { [self] _ in
             shutterRadiusFactor -= 0.01
             if shutterRadiusFactor <= 0 {
@@ -413,6 +414,7 @@ struct OneShotView: View {
     }
     
     private func startRecordAnimation() {
+        decreaseShutterTimer?.invalidate()
         decreaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
             recordRadiusFactor -= 0.01
             if recordRadiusFactor <= 0.02 {
@@ -423,6 +425,7 @@ struct OneShotView: View {
     }
     
     private func startReleaseAnimation() {
+        increaseShutterTimer?.invalidate()
         increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.001, repeats: true) { [self] _ in
             shutterRadiusFactor += 0.01
             if shutterRadiusFactor >= 0.5 {
@@ -433,6 +436,7 @@ struct OneShotView: View {
     }
     
     private func stopRecordAnimation() {
+        increaseShutterTimer?.invalidate()
         increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
             recordRadiusFactor += 0.01
             if recordRadiusFactor >= recordSizeFactor * 0.5 {
@@ -443,6 +447,7 @@ struct OneShotView: View {
     }
     
     private func transitionFromStills() {
+        increaseShutterTimer?.invalidate()
         increaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
             shutterRadiusFactor += 0.01
             if shutterRadiusFactor >= 0.7 {
@@ -453,6 +458,7 @@ struct OneShotView: View {
     }
     
     private func transitionToStills() {
+        decreaseShutterTimer?.invalidate()
         decreaseShutterTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [self] _ in
             shutterRadiusFactor -= 0.01
             if shutterRadiusFactor <= 0.5 {
@@ -463,6 +469,7 @@ struct OneShotView: View {
     }
     
     private func transitionToVideo() {
+        increaseRecordTimer?.invalidate()
         recordRadiusFactor = 0.3 * 0.5
         increaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.005, repeats: true) { [self] _ in
             recordSizeFactor += 0.01
@@ -474,6 +481,7 @@ struct OneShotView: View {
     }
     
     private func transitionFromVideo() {
+        decreaseRecordTimer?.invalidate()
         decreaseRecordTimer = Timer.scheduledTimer(withTimeInterval: 0.008, repeats: true) { [self] _ in
             recordSizeFactor -= 0.01
             if recordSizeFactor <= 0.0 {

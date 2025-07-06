@@ -377,8 +377,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     _isShootingMode = true
                 } else if value == Data([0x03]) {
                     _isShootingMode = false
-                } else if value == Data([0x01]) {
-                    _isShootingMode = true
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for modeNotifyCharacteristic: \(hexString)")
