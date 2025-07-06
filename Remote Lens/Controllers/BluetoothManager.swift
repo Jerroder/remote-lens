@@ -71,6 +71,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var hasUserInitiatedDisconnect: Bool = false
     private var isReconnecting: Bool = false
     private var requiresPairing: Bool = true
+    private var isAutofocusSuccess: Bool = false
     
     var peripherals: [CBPeripheral] {
         get {
@@ -378,7 +379,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 if value == Data([0x01, 0x01, 0x01]) && isRecording {
                     _isRecording = false
                 } else if value == Data([0x01, 0x01, 0x01]) && !isRecording {
-                    _hasAutofocusFailed = true
+                    if !isAutofocusSuccess {
+                        _hasAutofocusFailed = true
+                    }
+                } else if value == Data([0x01, 0x02, 0x01]) {
+                    _hasAutofocusFailed = false
+                    isAutofocusSuccess = true
                 } else if value == Data([0x01, 0x01, 0x02]) {
                     _isRecording = true
                 } else {
@@ -516,6 +522,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             return
         }
         
+        isAutofocusSuccess = false
         _hasAutofocusFailed = false
         
         let pressData = Data([0x00, 0x01])

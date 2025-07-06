@@ -491,10 +491,28 @@
       "comment" : "Get GPS data every",
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GPS-Daten abrufen alle"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Get GPS data every"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtener datos GPS cada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir des données GPS toutes les"
           }
         }
       }
@@ -503,10 +521,28 @@
       "comment" : "If interval is 0, the location with only be acquired and sent to the camera when the app starts.",
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn das Intervall 0 ist, wird der Standort nur einmal erfasst und an die Kamera gesendet, wenn die App startet.\n\nAndernfalls wird Ihr Standort alle x Sekunden aktualisiert. Wenn das GPS-Signal jedoch länger als x Sekunden benötigt, um Ihre Position zu erfassen, können einige Aktualisierungen übersprungen werden. Das bedeutet, dass der Zeitabstand zwischen den Standortaktualisierungen nicht immer exakt ist."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "If interval is 0, the location will only be acquired and sent to the camera once, when the app starts.\n\nIf not, it will update your location every x seconds. However, if the GPS signal takes longer than x seconds to lock onto your position, some updates may be skipped. This means the timing between location updates might not always be exact."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si el intervalo es 0, la ubicación se adquirirá y enviará a la cámara una sola vez, al iniciar la aplicación.\n\nDe lo contrario, actualizará su ubicación cada x segundos. Sin embargo, si la señal GPS tarda más de x segundos en fijar su posición, algunas actualizaciones pueden saltarse. Esto significa que el tiempo entre las actualizaciones de ubicación puede no ser siempre exacto."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si l'intervalle est 0, la position ne sera acquise et envoyée à l’appareil qu'une seule fois, au démarrage de l'application.\n\nDans le cas contraire, votre position sera mise à jour toutes les x secondes. Cependant, si le signal GPS met plus de x secondes à se verrouiller sur votre position, certaines mises à jour peuvent ne pas fonctionner. Cela signifie que le délai entre les mises à jour de la position n'est pas toujours exact."
           }
         }
       }
@@ -1031,10 +1067,28 @@
       "comment" : "Video mode",
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Videomodus"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Video mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de video"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode vidéo"
           }
         }
       }
@@ -1073,10 +1127,28 @@
       "comment" : "Wait for GPS to get a fix before taking the photo",
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warten, bis das GPS ein Signal hat, bevor das Foto aufgenommen wird"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wait for GPS to get a fix before taking the photo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperar a que el GPS obtenga una señal antes de tomar la foto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attendre les coordonnées GPS avant de prendre la photo"
           }
         }
       }
