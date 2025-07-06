@@ -8,18 +8,18 @@
 import CoreBluetooth
 import Foundation
 
-class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
-    enum Buttons {
-        case middle
-        case right
-        case left
-        case up
-        case down
-        case back
-        case zoomIn
-        case zoomOut
-    }
-    
+enum Buttons {
+    case middle
+    case right
+    case left
+    case up
+    case down
+    case back
+    case zoomIn
+    case zoomOut
+}
+
+class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {    
     @Published private var _peripherals: [CBPeripheral] = [CBPeripheral]()
     @Published private var _connectedPeripheral: CBPeripheral?
     @Published private var _isConnected: Bool = false
@@ -31,6 +31,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published private var _warnRemoveFromCameraMenu: Bool = false
     @Published private var _warnRemoveFromiPhoneMenu: Bool = false
     @Published private var _warnCameraTurnedOff: Bool = false
+    @Published private var _warnCameraLostConnection: Bool = false
     @Published private var _isConnecting: Bool = false
     
     private let handshakeService: CBUUID = CBUUID(string: "00010000-0000-1000-0000-D8492FffA821")
@@ -145,6 +146,15 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
         set {
             _warnCameraTurnedOff = newValue
+        }
+    }
+    
+    var warnCameraLostConnection: Bool {
+        get {
+            return _warnCameraLostConnection
+        }
+        set {
+            _warnCameraLostConnection = newValue
         }
     }
     
@@ -443,7 +453,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                     _warnCameraTurnedOff = true
                 }
             } else if error.code == CBError.connectionTimeout {
-                print("The connection has timed out unexpectedly")
+                _warnCameraLostConnection = true
             } else {
                 print("Disconnected with error: \(error.localizedDescription)")
             }

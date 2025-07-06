@@ -275,24 +275,24 @@ struct OneShotView: View {
                                                 if value.translation.width < 0 {
                                                     if !isSwiping {
                                                         isSwiping = true
-                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.left)
+                                                        bleManager.pressNavigationButton(button: Buttons.left)
                                                     }
                                                 } else if value.translation.width > 0 {
                                                     if !isSwiping {
                                                         isSwiping = true
-                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.right)
+                                                        bleManager.pressNavigationButton(button: Buttons.right)
                                                     }
                                                 }
                                             } else {
                                                 if value.translation.height < 0 {
                                                     if !isSwiping {
                                                         isSwiping = true
-                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.up)
+                                                        bleManager.pressNavigationButton(button: Buttons.up)
                                                     }
                                                 } else if value.translation.height > 0 {
                                                     if !isSwiping {
                                                         isSwiping = true
-                                                        bleManager.pressNavigationButton(button: BluetoothManager.Buttons.down)
+                                                        bleManager.pressNavigationButton(button: Buttons.down)
                                                     }
                                                 }
                                             }
@@ -302,7 +302,7 @@ struct OneShotView: View {
                                         }
                                 )
                                 .onTapGesture {
-                                    bleManager.pressNavigationButton(button: BluetoothManager.Buttons.middle)
+                                    bleManager.pressNavigationButton(button: Buttons.middle)
                                     withAnimation {
                                         hasBeenPressed = true
                                     }
@@ -341,7 +341,7 @@ struct OneShotView: View {
                             }
                         } else {
                             Button(action: {
-                                bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomOut)
+                                bleManager.pressNavigationButton(button: Buttons.zoomOut)
                             }) {
                                 Image(systemName: "minus.magnifyingglass")
                                     .font(.system(size: geometry.size.width * 0.07, weight: .thin))
@@ -355,7 +355,7 @@ struct OneShotView: View {
                             Spacer()
                             
                             Button(action: {
-                                bleManager.pressNavigationButton(button: BluetoothManager.Buttons.zoomIn)
+                                bleManager.pressNavigationButton(button: Buttons.zoomIn)
                             }) {
                                 Image(systemName: "plus.magnifyingglass")
                                     .font(.system(size: geometry.size.width * 0.07, weight: .thin))

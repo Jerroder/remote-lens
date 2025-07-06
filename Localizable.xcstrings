@@ -670,6 +670,96 @@
         }
       }
     },
+    "lost_connection_to_camera" : {
+      "comment" : "Lost connection to the camera",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindung zur Kamera verloren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lost connection to the camera"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexión con la cámara perdida"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion avec l'appareil photo perdue"
+          }
+        }
+      }
+    },
+    "lost_connection_to_camera_text" : {
+      "comment" : "Please make sure the camera is in range and its battery is charged.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte stellen Sie sicher, dass die Kamera in Reichweite ist und der Akku geladen ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please make sure the camera is in range and its battery is charged."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asegúrese de que la cámara esté dentro del alcance y de que su batería esté cargada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assurez-vous que l'appareil photo est à portée et que sa batterie est chargée."
+          }
+        }
+      }
+    },
+    "lost_connection_to_camera_unexpected" : {
+      "comment" : "Lost connection to the camera unexpectedly",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindung zur Kamera unerwartet verloren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lost connection to the camera unexpectedly"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexión con la cámara perdida inesperadamente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion avec l'appareil photo perdue inopinément"
+          }
+        }
+      }
+    },
     "manual_geotagging" : {
       "comment" : "Get GPS data manually",
       "extractionState" : "manual",
