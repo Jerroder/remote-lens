@@ -7,6 +7,7 @@
 
 import CoreBluetooth
 import Foundation
+import UIKit
 
 enum Buttons {
     case middle
@@ -33,6 +34,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published private var _warnCameraTurnedOff: Bool = false
     @Published private var _warnCameraLostConnection: Bool = false
     @Published private var _isConnecting: Bool = false
+    @Published private var _showPairingAlert = false
     
     private let handshakeService: CBUUID = CBUUID(string: "00010000-0000-1000-0000-D8492FffA821")
     private let checkPairingUUID: CBUUID = CBUUID(string: "00010005-0000-1000-0000-D8492FFFA821")
@@ -66,13 +68,15 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var confirmGeotagCharacteristic: CBCharacteristic?
     private var checkPairingCharacteristic: CBCharacteristic?
     
+    private var _selectedPeripheral: CBPeripheral?
     private var scanTimer: Timer?
     private var shouldScan: Bool = true
     private var lastConnectedPeripheralUUID: UUID?
-    private var hasUserInitiatedDisconnect: Bool = false
-    private var isReconnecting: Bool = false
-    private var requiresPairing: Bool = true
+    private var hasUserInitiatedDisconnect: Bool = UserDefaults.standard.bool(forKey: "hasUserInitiatedDisconnect")
+    private var _requiresPairing: Bool = true
     private var isAutofocusSuccess: Bool = false
+    
+    let iphoneName: String = UIDevice.current.name
     
     var peripherals: [CBPeripheral] {
         get {
@@ -83,6 +87,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     var connectedPeripheral: CBPeripheral? {
         get {
             return _connectedPeripheral
+        }
+    }
+    
+    var selectedPeripheral: CBPeripheral? {
+        get {
+            return _selectedPeripheral
         }
     }
     
@@ -164,6 +174,21 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
     }
     
+    var showPairingAlert: Bool {
+        get {
+            return _showPairingAlert
+        }
+        set {
+            _showPairingAlert = newValue
+        }
+    }
+    
+    var requiresPairing: Bool {
+        get {
+            return _requiresPairing
+        }
+    }
+    
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil)
@@ -219,7 +244,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                         }
                         
                         if peripheral.identifier == lastConnectedPeripheralUUID && !hasUserInitiatedDisconnect {
-                            connect(to: peripheral)
+                            if _requiresPairing {
+                                requestConnection(to: peripheral)
+                            } else {
+                                connect(to: peripheral)
+                            }
                         }
                     }
                     
@@ -239,14 +268,28 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         scanTimer?.invalidate()
         scanTimer = nil
         
-        isReconnecting = (peripheral.identifier == lastConnectedPeripheralUUID) && lastConnectedPeripheralUUID != nil
-        
         DispatchQueue.main.async {
             self._isConnecting = true
         }
         
         centralManager.connect(peripheral, options: nil)
         _connectedPeripheral = peripheral
+    }
+    
+    func requestConnection(to peripheral: CBPeripheral) {
+        _selectedPeripheral = peripheral
+        _showPairingAlert = true
+    }
+    
+    func userDidConfirmConnection() {
+        guard let peripheral = _selectedPeripheral else { return }
+        _showPairingAlert = false
+        connect(to: peripheral)
+    }
+
+    func userDidCancelConnection() {
+        _showPairingAlert = false
+        _selectedPeripheral = nil
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -268,6 +311,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "lastConnectedPeripheralUUID")
         hasUserInitiatedDisconnect = false
+        UserDefaults.standard.set(hasUserInitiatedDisconnect, forKey: "hasUserInitiatedDisconnect")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -286,7 +330,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             switch characteristic.uuid {
             case startHandshakeUUID:
                 print("Found characteristic for camera confirmation")
-                let handshakeData = Data([0x01] + "iPhone 11 Pro".utf8)
+                let handshakeData = Data([0x01] + iphoneName.utf8)
                 peripheral.writeValue(handshakeData, for: characteristic, type: .withResponse)
                 
                 confirmHandshakeCharacteristic = characteristic
@@ -331,10 +375,9 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 // let's hope all R series camera can be paired with a GPS receiver
                 peripheral.readValue(for: checkPairingCharacteristic!)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    if !self.requiresPairing {
+                    if !self._requiresPairing {
                         let finishHandshakeData = Data([0x01])
                         peripheral.writeValue(finishHandshakeData, for: self.endHandshakeCharacteristic!, type: .withResponse)
-                        self.isReconnecting = false
                         DispatchQueue.main.async {
                             self._isConnecting = false
                         }
@@ -417,7 +460,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         } else if characteristic.uuid == checkPairingCharacteristic?.uuid {
             if let value = characteristic.value {
                 if value == Data([0x01]) {
-                    requiresPairing = false
+                    _requiresPairing = false
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for checkPairingCharacteristic: \(hexString)")
@@ -438,7 +481,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         if let error = error as? CBError {
             if error.code == CBError.peripheralDisconnected {
-                if requiresPairing { // Happens when the camera is deleted from the iPhone's known devices list
+                if _requiresPairing { // Happens when the camera is deleted from the iPhone's known devices list
                     _warnRemoveFromCameraMenu = true
                     
                     lastConnectedPeripheralUUID = nil
@@ -508,7 +551,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         peripheral.writeValue(deviceIDData, for: characteristic, type: .withResponse)
         
         // Write device name
-        let deviceNameData = Data([0x04] + "iPhone 11 Pro".utf8) // @TODO: replace with prompted name
+        let deviceNameData = Data([0x04] + iphoneName.utf8)
         peripheral.writeValue(deviceNameData, for: characteristic, type: .withResponse)
         
         // Write device type (e.g., iOS)
@@ -609,6 +652,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
         
         hasUserInitiatedDisconnect = true
+        UserDefaults.standard.set(hasUserInitiatedDisconnect, forKey: "hasUserInitiatedDisconnect")
         centralManager.cancelPeripheralConnection(peripheral)
     }
     

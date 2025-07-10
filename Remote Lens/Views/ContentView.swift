@@ -80,34 +80,22 @@ struct ContentView: View {
                 }
             }
         )
-        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: Binding(
-            get: { bleManager.warnRemoveFromiPhoneMenu },
-            set: { newValue in bleManager.warnRemoveFromiPhoneMenu = newValue}
-        )) {
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnRemoveFromiPhoneMenu) {
             Button("close".localized(comment: "Close"), role: .cancel) { }
         } message: {
             Text("remove_from_iphone_menu_text".localized(comment: "Please remove the camera from your iPhone's list"))
         }
-        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: Binding(
-            get: { bleManager.warnRemoveFromCameraMenu },
-            set: { newValue in bleManager.warnRemoveFromCameraMenu = newValue }
-        )) {
+        .alert("couldnt_connect_to_camera".localized(comment: "Couldn’t connect to the camera"), isPresented: $bleManager.warnRemoveFromCameraMenu) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("remove_from_camera_menu_text".localized(comment: "Please remove this iPhone from your camera’s list"))
         }
-        .alert("lost_connection_to_camera".localized(comment: "Lost connection to the camera"), isPresented: Binding(
-            get: { bleManager.warnCameraTurnedOff },
-            set: { newValue in bleManager.warnCameraTurnedOff = newValue }
-        )) {
+        .alert("lost_connection_to_camera".localized(comment: "Lost connection to the camera"), isPresented: $bleManager.warnCameraTurnedOff) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("camera_turned_off_text".localized(comment: "Please make sure the camera is turned on and in range."))
         }
-        .alert("lost_connection_to_camera_unexpected".localized(comment: "Lost connection to the camera unexpectedly"), isPresented: Binding(
-            get: { bleManager.warnCameraLostConnection },
-            set: { newValue in bleManager.warnCameraLostConnection = newValue }
-        )) {
+        .alert("lost_connection_to_camera_unexpected".localized(comment: "Lost connection to the camera unexpectedly"), isPresented: $bleManager.warnCameraLostConnection) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("lost_connection_to_camera_text".localized(comment: "Please make sure the camera is in range and its battery is charged."))
