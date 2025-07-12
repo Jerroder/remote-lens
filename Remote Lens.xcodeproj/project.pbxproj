@@ -26,7 +26,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		462A25302E227F530042DE1C /* Remote Lens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Remote Lens.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		463C656C2E228FCC00BFFFCF /* Remote Lens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Remote Lens.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		467CF0592DFA1DB700D7F87C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		467CF08D2DFA1E3300D7F87C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		46FA91772DFC24040059912E /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -48,16 +48,6 @@
 			path = "Remote Lens";
 			sourceTree = "<group>";
 		};
-		467CF0342DFA1A2A00D7F87C /* Remote LensTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Remote LensTests";
-			sourceTree = "<group>";
-		};
-		467CF03E2DFA1A2A00D7F87C /* Remote LensUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Remote LensUITests";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,12 +67,10 @@
 				462A24FE2E2174030042DE1C /* Screenshots */,
 				462A24DF2E216DB00042DE1C /* Icons */,
 				467CF0242DFA1A2800D7F87C /* Remote Lens */,
-				467CF0342DFA1A2A00D7F87C /* Remote LensTests */,
-				467CF03E2DFA1A2A00D7F87C /* Remote LensUITests */,
 				46FA91772DFC24040059912E /* Localizable.xcstrings */,
 				467CF0592DFA1DB700D7F87C /* PrivacyInfo.xcprivacy */,
 				467CF08D2DFA1E3300D7F87C /* README.md */,
-				462A25302E227F530042DE1C /* Remote Lens.app */,
+				463C656C2E228FCC00BFFFCF /* Remote Lens.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -111,7 +99,7 @@
 			packageProductDependencies = (
 			);
 			productName = "Remote Lens";
-			productReference = 462A25302E227F530042DE1C /* Remote Lens.app */;
+			productReference = 463C656C2E228FCC00BFFFCF /* Remote Lens.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
