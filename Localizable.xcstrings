@@ -1243,6 +1243,36 @@
         }
       }
     },
+    "this_device" : {
+      "comment" : "this device",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dieses gerät"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this device"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "este dispositivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cet appareil"
+          }
+        }
+      }
+    },
     "unknown_device" : {
       "comment" : "Unknown Device",
       "extractionState" : "manual",
