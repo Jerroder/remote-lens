@@ -409,6 +409,12 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                 } else if value == Data([0x03]) {
                     print("User pressed Cancel.")
                     centralManager.cancelPeripheralConnection(peripheral)
+                    DispatchQueue.main.async {
+                        self._isConnecting = false
+                    }
+                    _selectedPeripheral = nil
+                    _showPairingAlert = false
+                    _warnRemoveFromiPhoneMenu = true
                 } else {
                     let hexString = value.map { String(format: "%02hhx", $0) }.joined()
                     print("Value not recognized for confirmHandshakeCharacteristic: \(hexString)")
