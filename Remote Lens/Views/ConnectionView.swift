@@ -21,11 +21,7 @@ struct ConnectionView: View {
             } else {
                 List(bleManager.peripherals, id: \.identifier) { peripheral in
                     Button(action: {
-                        if bleManager.requiresPairing {
-                            bleManager.requestConnection(to: peripheral)
-                        } else {
-                            bleManager.connect(to: peripheral)
-                        }
+                        bleManager.connect(to: peripheral)
                     }) {
                         Text(peripheral.name ?? "unknown_device".localized(comment: "Unknown Device"))
                     }
@@ -33,15 +29,15 @@ struct ConnectionView: View {
             }
         }
         .navigationTitle("canon_cameras".localized(comment: "Canon Cameras"))
-        .alert("do_you_want_to_connect_with".localized(with: "\(bleManager.selectedPeripheral?.name ?? "this_device".localized(comment: "this device"))", comment: "Do you want to connect with (...)?"), isPresented: $bleManager.showPairingAlert) {
-            Button("connect".localized(comment: "Connect"), role: nil) {
-                bleManager.userDidConfirmConnection()
-            }
-            Button("cancel".localized(comment: "Cancel"), role: .cancel) {
-                bleManager.userDidCancelConnection()
-            }
-        } message: {
-            Text("device_name_will_be_sent_to_camera".localized(with: "\(bleManager.iphoneName)", comment: "The name of your device (...) will be sent to the camera"))
-        }
+//        .alert("do_you_want_to_connect_with".localized(with: "\(bleManager.selectedPeripheral?.name ?? "this_device".localized(comment: "this device"))", comment: "Do you want to connect with (...)?"), isPresented: $bleManager.showPairingAlert) {
+//            Button("connect".localized(comment: "Connect"), role: nil) {
+//                bleManager.userDidConfirmConnection()
+//            }
+//            Button("cancel".localized(comment: "Cancel"), role: .cancel) {
+//                bleManager.userDidCancelConnection()
+//            }
+//        } message: {
+//            Text("device_name_will_be_sent_to_camera".localized(with: "\(bleManager.iphoneName)", comment: "The name of your device (...) will be sent to the camera"))
+//        }
     }
 }

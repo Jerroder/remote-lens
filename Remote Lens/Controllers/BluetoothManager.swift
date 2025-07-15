@@ -69,18 +69,29 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var checkPairingCharacteristic: CBCharacteristic?
     
     private var _selectedPeripheral: CBPeripheral?
+    private var _requiresPairing: Bool = true
+    private var _iphoneName: String = UIDevice.current.name
     private var scanTimer: Timer?
     private var shouldScan: Bool = true
     private var lastConnectedPeripheralUUID: UUID?
     private var hasUserInitiatedDisconnect: Bool = UserDefaults.standard.bool(forKey: "hasUserInitiatedDisconnect")
-    private var _requiresPairing: Bool = true
     private var isAutofocusSuccess: Bool = false
-    
-    let iphoneName: String = UIDevice.current.name
     
     var peripherals: [CBPeripheral] {
         get {
             return _peripherals
+        }
+    }
+    
+    var requiresPairing: Bool {
+        get {
+            return _requiresPairing
+        }
+    }
+    
+    var iphoneName: String {
+        get {
+            return _iphoneName
         }
     }
     
@@ -183,12 +194,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
     }
     
-    var requiresPairing: Bool {
-        get {
-            return _requiresPairing
-        }
-    }
-    
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil)
@@ -196,6 +201,9 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         if let uuidString = UserDefaults.standard.string(forKey: "lastConnectedPeripheralUUID") {
             lastConnectedPeripheralUUID = UUID(uuidString: uuidString)
         }
+        
+        let deviceIdentifier = UIDevice.current.identifierForVendor?.uuidString
+        _iphoneName = "\(_iphoneName) \(deviceIdentifier?.suffix(4) ?? "0000")"
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -244,11 +252,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                         }
                         
                         if peripheral.identifier == lastConnectedPeripheralUUID && !hasUserInitiatedDisconnect {
-                            if _requiresPairing {
-                                requestConnection(to: peripheral)
-                            } else {
-                                connect(to: peripheral)
-                            }
+                            connect(to: peripheral)
                         }
                     }
                     
