@@ -52,9 +52,9 @@ This isn't technically true, the camera notifies with `01` after writing `0x04` 
 
 UUID: `00040000-0000-1000-0000-D8492FFFA821`
 
-* 00040001-0000-1000-0000-D8492FFFA821 - unknown
+* `00040001-0000-1000-0000-D8492FFFA821` - unknown
     - readable characteristic
-* 00040002-0000-1000-0000-D8492FFFA821 - GPS data
+* `00040002-0000-1000-0000-D8492FFFA821` - GPS data
     - write `0x01` after being indicated with `0x03` on "Confirm geotagging" characteristic in order to confirm geotagging capabilities
     - write `0x03` disable geotagging
     - write `0x04` + 19 bytes of GPS data
@@ -66,7 +66,7 @@ UUID: `00040000-0000-1000-0000-D8492FFFA821`
         * byte 11: `+` or `-`in ASCII, for positive or negative,
         * bytes 12-15: Elevation in meters in float32 little endian,
         * bytes 16-19: Unix Timestamp in seconds in int32 little endian.
-* 00040003-0000-1000-0000-D8492FFFA821 - Confirm geotagging
+* `00040003-0000-1000-0000-D8492FFFA821` - Confirm geotagging
     - indicates with `0x01` when GPS receiver has been disabled on camera
     - indicates with `0x02` when GPS receiver has been set on camera
     - indicates with `0x03` after going in the camera menu, when going to GPS receiver > Select GPS device and selecting Smartphone
