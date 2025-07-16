@@ -261,7 +261,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                         self._isLocationServiceEnabled = false
                     }
                 }
-                data.append(Data(count: 15))
+                data.append(Data(count: 12))
                 data.insert(0x4E, at: 1)
                 data.insert(0x45, at: 6)
                 data.insert(0x2B, at: 11)
