@@ -34,12 +34,12 @@ From what I read in other projects, the Canon R series and M series all have the
     - [Wi-Fi icon](https://www.svgrepo.com/svg/510343/wifi-high) by zest (MIT License)
     - [Lens icon](https://www.svgrepo.com/svg/79115/lens) by SVG Repo (Public Domain)
 * Canon BLE services an characteristics:
-    - Thanks to Guo-Rong from (furble)(https://github.com/gkoh/furble) for helping me figuring out geotagging.
+    - Thanks to Guo-Rong from [furble](https://github.com/gkoh/furble) for helping me figuring out geotagging.
     - [Canon Bluetooth Control](https://github.com/3bl3gamer/canon-bluetooth-control)
     - [Canon BLE Intervalometer](https://github.com/robot9706/CanonBLEIntervalometer)
     - [Bluetooth SIG Assigned Numbers](https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Assigned_Numbers/out/en/Assigned_Numbers.pdf)
 
-## Addendum
+## Appendix
 
 In order to complete or correct what's been documented in [Canon Bluetooth Control](https://github.com/3bl3gamer/canon-bluetooth-control), here's what I found:
 
