@@ -4,7 +4,7 @@ iOS app to connect to a Canon EOS R series (it may work with other models, likel
 
 [![download_on_app_store](Images/Download_on_the_App_Store.svg)](https://apps.apple.com/app/remote-lens/id6748348414)
 
-[![screenshots](Images/Screenshots.png)]
+![screenshots](Images/Screenshots.png)
 
 ## References
 Thanks to Guo-Rong from https://github.com/gkoh/furble for helping me with geotagging.
