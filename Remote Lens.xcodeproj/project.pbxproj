@@ -26,21 +26,50 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		463C65812E22EAA100BFFFCF /* Remote Lens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Remote Lens.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		467CF0592DFA1DB700D7F87C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		467CF08D2DFA1E3300D7F87C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		46D04EB32E28460D00A31C2A /* Remote Lens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Remote Lens.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		46FA91772DFC24040059912E /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		462A24DF2E216DB00042DE1C /* Icons */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Icons;
-			sourceTree = "<group>";
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		46D04EB22E28448B00A31C2A /* Exceptions for "Images" folder in "Remote Lens" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Download_on_the_App_Store.svg,
+				Screenshots.png,
+				Screenshots/iPad/Geotagging.afphoto,
+				Screenshots/iPad/Geotagging.png,
+				Screenshots/iPad/Intervalometer.afphoto,
+				Screenshots/iPad/Intervalometer.png,
+				Screenshots/iPad/Playback.afphoto,
+				Screenshots/iPad/Playback.png,
+				Screenshots/iPad/RemoteLens.afphoto,
+				Screenshots/iPad/RemoteLens.png,
+				Screenshots/iPad/Video.afphoto,
+				Screenshots/iPad/Video.png,
+				Screenshots/iPhone/Geotagging.afphoto,
+				Screenshots/iPhone/Geotagging.png,
+				Screenshots/iPhone/Intervalometer.afphoto,
+				Screenshots/iPhone/Intervalometer.png,
+				Screenshots/iPhone/Playback.afphoto,
+				Screenshots/iPhone/Playback.png,
+				Screenshots/iPhone/RemoteLens.afphoto,
+				Screenshots/iPhone/RemoteLens.png,
+				Screenshots/iPhone/Video.afphoto,
+				Screenshots/iPhone/Video.png,
+			);
+			target = 467CF0212DFA1A2800D7F87C /* Remote Lens */;
 		};
-		462A24FE2E2174030042DE1C /* Screenshots */ = {
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		462A24FE2E2174030042DE1C /* Images */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Screenshots;
+			exceptions = (
+				46D04EB22E28448B00A31C2A /* Exceptions for "Images" folder in "Remote Lens" target */,
+			);
+			path = Images;
 			sourceTree = "<group>";
 		};
 		467CF0242DFA1A2800D7F87C /* Remote Lens */ = {
@@ -64,13 +93,12 @@
 		467CF0192DFA1A2800D7F87C = {
 			isa = PBXGroup;
 			children = (
-				462A24FE2E2174030042DE1C /* Screenshots */,
-				462A24DF2E216DB00042DE1C /* Icons */,
+				462A24FE2E2174030042DE1C /* Images */,
 				467CF0242DFA1A2800D7F87C /* Remote Lens */,
 				46FA91772DFC24040059912E /* Localizable.xcstrings */,
 				467CF0592DFA1DB700D7F87C /* PrivacyInfo.xcprivacy */,
 				467CF08D2DFA1E3300D7F87C /* README.md */,
-				463C65812E22EAA100BFFFCF /* Remote Lens.app */,
+				46D04EB32E28460D00A31C2A /* Remote Lens.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -91,15 +119,14 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				462A24DF2E216DB00042DE1C /* Icons */,
-				462A24FE2E2174030042DE1C /* Screenshots */,
+				462A24FE2E2174030042DE1C /* Images */,
 				467CF0242DFA1A2800D7F87C /* Remote Lens */,
 			);
 			name = "Remote Lens";
 			packageProductDependencies = (
 			);
 			productName = "Remote Lens";
-			productReference = 463C65812E22EAA100BFFFCF /* Remote Lens.app */;
+			productReference = 46D04EB32E28460D00A31C2A /* Remote Lens.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -290,18 +317,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = "Remote Lens/Remote Lens.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = JUA2K3U263;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Remote-Lens-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Remote Lens";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "The app needs Bluetooth access in order to connect to the camera.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "If the user wants to add GPS data to their photos, the app needs access to location to send the coordinates to the camera.";
@@ -332,17 +360,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = "Remote Lens/Remote Lens.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = JUA2K3U263;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Remote-Lens-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Remote Lens";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "The app needs Bluetooth access in order to connect to the camera.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "If the user wants to add GPS data to their photos, the app needs access to location to send the coordinates to the camera.";

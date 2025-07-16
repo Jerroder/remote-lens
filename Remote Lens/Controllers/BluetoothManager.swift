@@ -201,9 +201,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         if let uuidString = UserDefaults.standard.string(forKey: "lastConnectedPeripheralUUID") {
             lastConnectedPeripheralUUID = UUID(uuidString: uuidString)
         }
-        
-        let deviceIdentifier = UIDevice.current.identifierForVendor?.uuidString
-        _iphoneName = "\(_iphoneName) \(deviceIdentifier?.suffix(4) ?? "0000")"
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -252,7 +249,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
                         }
                         
                         if peripheral.identifier == lastConnectedPeripheralUUID && !hasUserInitiatedDisconnect {
-                            connect(to: peripheral)
+                            if _requiresPairing {
+                                requestConnection(to: peripheral)
+                            } else {
+                                connect(to: peripheral)
+                            }
                         }
                     }
                     
