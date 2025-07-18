@@ -63,7 +63,7 @@ UUID: `00040000-0000-1000-0000-D8492FFFA821`
         * bytes 2-5: Latitude in DD format in float32 little endian,
         * byte 6: `E` or `W` in ASCII, for East or West,
         * bytes 7-10: Longitude in DD format in float32 little endian,
-        * byte 11: `+` or `-`in ASCII, for positive or negative,
+        * byte 11: `+` or `-` in ASCII, for positive or negative,
         * bytes 12-15: Elevation in meters in float32 little endian,
         * bytes 16-19: Unix Timestamp in seconds in int32 little endian.
 * `00040003-0000-1000-0000-D8492FFFA821` - Confirm geotagging
