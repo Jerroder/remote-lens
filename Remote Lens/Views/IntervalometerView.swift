@@ -102,6 +102,10 @@ struct IntervalometerView: View {
                 }
             }
         }
+        .sensoryFeedback(trigger: isRunning) { oldValue, newValue in
+            let flex = newValue ? SensoryFeedback.Flexibility.soft : SensoryFeedback.Flexibility.solid
+            return .impact(flexibility: flex, intensity: 1.0)
+        }
     } /* View */
     
     private func startIntervalometer() {

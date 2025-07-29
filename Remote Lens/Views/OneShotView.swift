@@ -11,7 +11,7 @@ struct OuterCircle: Shape {
     var outerRadiusFactor: CGFloat = 0.7
     
     func path(in rect: CGRect) -> Path {
-        let center = CGPoint(x: rect.width / 2, y: rect.height / 2)
+        let center: CGPoint = CGPoint(x: rect.width / 2, y: rect.height / 2)
         let outerRadius: CGFloat = min(rect.width, rect.height) * outerRadiusFactor
         
         var path = Path()
@@ -28,11 +28,11 @@ struct ShutterBlades: Shape {
     var outerRadiusFactor: CGFloat = 0.7
     
     func path(in rect: CGRect) -> Path {
-        let center = CGPoint(x: rect.width / 2, y: rect.height / 2)
+        let center: CGPoint = CGPoint(x: rect.width / 2, y: rect.height / 2)
         let innerRadius: CGFloat = min(rect.width, rect.height) * innerRadiusFactor
         let outerRadius: CGFloat = min(rect.width, rect.height) * outerRadiusFactor
         
-        var path = Path()
+        var path: Path = Path()
         
         // Draw the outer circle
         path.addArc(center: center, radius: outerRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
@@ -41,25 +41,25 @@ struct ShutterBlades: Shape {
         path.addArc(center: center, radius: innerRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
         
         // Draw arcs from the inner circle to the outer circle
-        let tangentLineCount = 6
+        let tangentLineCount: Int = 6
         for i in 0..<tangentLineCount {
-            let angle = Angle.degrees(Double(i) * 360 / Double(tangentLineCount))
-            let tangentOffset = acos(innerRadius / outerRadius)
+            let angle: Angle = Angle.degrees(Double(i) * 360 / Double(tangentLineCount))
+            let tangentOffset: CGFloat = acos(innerRadius / outerRadius)
             
-            let innerAngle = angle.radians - tangentOffset
+            let innerAngle: CGFloat = angle.radians - tangentOffset
             
-            let innerPoint = CGPoint(
+            let innerPoint: CGPoint = CGPoint(
                 x: center.x + innerRadius * CGFloat(cos(innerAngle)),
                 y: center.y + innerRadius * CGFloat(sin(innerAngle))
             )
             
-            let outerPoint = CGPoint(
+            let outerPoint: CGPoint = CGPoint(
                 x: center.x + outerRadius * CGFloat(cos(angle.radians)),
                 y: center.y + outerRadius * CGFloat(sin(angle.radians))
             )
             
-            let midRadius = (innerRadius + outerRadius) / 2
-            let controlPoint = CGPoint(
+            let midRadius: CGFloat = (innerRadius + outerRadius) / 2
+            let controlPoint: CGPoint = CGPoint(
                 x: center.x + midRadius * CGFloat(cos(angle.radians - tangentOffset / 2)),
                 y: center.y + midRadius * CGFloat(sin(angle.radians - tangentOffset / 2))
             )
@@ -79,11 +79,11 @@ struct OneShotView: View {
     @Binding var waitForFix: Bool
     @Binding var selectedOption: Int
     
-    @State private var isButtonPressed = false
+    @State private var isButtonPressed: Bool = false
     @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
     @State private var isVideoMode: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
     @State private var isTransitioningToVideo: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
-    @State private var isVideoModeToggleDisabled = false
+    @State private var isVideoModeToggleDisabled: Bool = false
     
     @State private var shutterRadiusFactor: CGFloat = 0.7
     @State private var decreaseShutterTimer: Timer?
@@ -171,9 +171,9 @@ struct OneShotView: View {
                                             }
                                             
                                             // Check if the finger has moved significantly
-                                            let translation = value.translation
-                                            let deltaX = abs(translation.width - initialTouchPosition.width)
-                                            let deltaY = abs(translation.height - initialTouchPosition.height)
+                                            let translation: CGSize = value.translation
+                                            let deltaX: CGFloat = abs(translation.width - initialTouchPosition.width)
+                                            let deltaY: CGFloat = abs(translation.height - initialTouchPosition.height)
                                             
                                             if deltaX < 1 && deltaY < 1 {
                                                 if !isPressed {
@@ -247,6 +247,21 @@ struct OneShotView: View {
                                             initialTouchPosition = .zero
                                         }
                                 )
+                                .sensoryFeedback(trigger: isPressed) { oldValue, newValue in
+                                    let flex: SensoryFeedback.Flexibility = newValue ? SensoryFeedback.Flexibility.soft : SensoryFeedback.Flexibility.solid
+                                    var amount: Double
+                                    if !isVideoMode {
+                                        amount = 1.0
+                                    } else {
+                                        // When starting a video recording || stopping a video recording
+                                        if (isVideoModeToggleDisabled && newValue) || (!isVideoModeToggleDisabled && oldValue) {
+                                            amount = 1.0
+                                        } else {
+                                            amount = 0.0
+                                        }
+                                    }
+                                    return .impact(flexibility: flex, intensity: amount)
+                                }
                             
                             Spacer()
                         } /* ZStack */
@@ -270,7 +285,7 @@ struct OneShotView: View {
                                                 hasBeenPressed = true
                                             }
                                             
-                                            let horizontalSwipe = abs(value.translation.width) > abs(value.translation.height)
+                                            let horizontalSwipe: Bool = abs(value.translation.width) > abs(value.translation.height)
                                             if horizontalSwipe {
                                                 if value.translation.width < 0 {
                                                     if !isSwiping {
@@ -386,6 +401,7 @@ struct OneShotView: View {
                                 .cornerRadius(10)
                         }
                         .padding()
+                        .sensoryFeedback(.impact(flexibility: .solid, intensity: 0.75), trigger: bleManager.isShootingMode)
                     }
                 } /* ZStack */
             } /* VStack */
