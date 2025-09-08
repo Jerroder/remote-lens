@@ -233,9 +233,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             
             var data: Data = Data([0x04])
             if let coordinate = coordinate, let altitude = altitude {
-                data.append(withUnsafeBytes(of: Float(coordinate.latitude)) { Data($0) })
-                data.append(withUnsafeBytes(of: Float(coordinate.longitude)) { Data($0) })
-                data.append(withUnsafeBytes(of: Float(altitude)) { Data($0) })
+                data.append(withUnsafeBytes(of: Float(abs(coordinate.latitude))) { Data($0) })
+                data.append(withUnsafeBytes(of: Float(abs(coordinate.longitude))) { Data($0) })
+                data.append(withUnsafeBytes(of: Float(abs(altitude))) { Data($0) })
                 
                 if coordinate.latitude >= 0 {
                     data.insert(0x4E, at: 1) // ASCII for 'N'
