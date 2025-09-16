@@ -5,6 +5,7 @@
 //  Created by Jerroder on 2025-06-13.
 //
 
+import AVKit
 import SwiftUI
 
 struct OuterCircle: Shape {
@@ -355,31 +356,61 @@ struct OneShotView: View {
                                 .frame(maxWidth: .infinity)
                             }
                         } else {
-                            Button(action: {
-                                bleManager.pressNavigationButton(button: Buttons.zoomOut)
-                            }) {
-                                Image(systemName: "minus.magnifyingglass")
-                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .foregroundColor(Color(UIColor.label))
-                                    .cornerRadius(10)
-                            }
-                            .padding()
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                bleManager.pressNavigationButton(button: Buttons.zoomIn)
-                            }) {
-                                Image(systemName: "plus.magnifyingglass")
-                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .foregroundColor(Color(UIColor.label))
-                                    .cornerRadius(10)
-                            }
-                            .padding()
+                            if #available(iOS 26.0, *) {
+                                Button(action: {
+                                    bleManager.pressNavigationButton(button: Buttons.zoomOut)
+                                }) {
+                                    Image(systemName: "minus.magnifyingglass")
+                                        .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                        .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
+                                        .background(Color(UIColor.clear))
+                                        .foregroundColor(Color(UIColor.label))
+                                }
+                                .padding()
+                                .buttonStyle(.glass)
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    bleManager.pressNavigationButton(button: Buttons.zoomIn)
+                                }) {
+                                    Image(systemName: "plus.magnifyingglass")
+                                        .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                        .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
+                                        .background(Color(UIColor.clear))
+                                        .foregroundColor(Color(UIColor.label))
+                                }
+                                .padding()
+                                .buttonStyle(.glass)
+                            } else {
+                                Button(action: {
+                                    bleManager.pressNavigationButton(button: Buttons.zoomOut)
+                                }) {
+                                    Image(systemName: "minus.magnifyingglass")
+                                        .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                        .frame(width: geometry.size.width * 0.10, height: geometry.size.width * 0.10)
+                                        .padding()
+                                        .background(Color(UIColor.secondarySystemBackground))
+                                        .foregroundColor(Color(UIColor.label))
+                                        .cornerRadius(10)
+                                }
+                                .padding()
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    bleManager.pressNavigationButton(button: Buttons.zoomIn)
+                                }) {
+                                    Image(systemName: "plus.magnifyingglass")
+                                        .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                        .frame(width: geometry.size.width * 0.10, height: geometry.size.width * 0.10)
+                                        .padding()
+                                        .background(Color(UIColor.secondarySystemBackground))
+                                        .foregroundColor(Color(UIColor.label))
+                                        .cornerRadius(10)
+                                }
+                                .padding()
+                            } /* if #available(iOS 26.0, *) */
                             
                             Spacer()
                             Spacer()
@@ -390,18 +421,34 @@ struct OneShotView: View {
                     HStack {
                         Spacer()
                         
-                        Button(action: {
-                            bleManager.switchMode()
-                        }) {
-                            Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
-                                .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                                .padding()
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .foregroundColor(Color(UIColor.label))
-                                .cornerRadius(10)
-                        }
-                        .padding()
-                        .sensoryFeedback(.impact(flexibility: .solid, intensity: 0.75), trigger: bleManager.isShootingMode)
+                        if #available(iOS 26.0, *) {
+                            Button(action: {
+                                bleManager.switchMode()
+                            }) {
+                                Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
+                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                    .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
+                                    .background(Color(UIColor.clear))
+                                    .foregroundColor(Color(UIColor.label))
+                            }
+                            .buttonStyle(.glass)
+                            .padding()
+                            .sensoryFeedback(.impact(flexibility: .solid, intensity: 0.75), trigger: bleManager.isShootingMode)
+                        } else {
+                            Button(action: {
+                                bleManager.switchMode()
+                            }) {
+                                Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
+                                    .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                    .frame(width: geometry.size.width * 0.10, height: geometry.size.width * 0.10)
+                                    .padding()
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .foregroundColor(Color(UIColor.label))
+                                    .cornerRadius(10)
+                            }
+                            .padding()
+                            .sensoryFeedback(.impact(flexibility: .solid, intensity: 0.75), trigger: bleManager.isShootingMode)
+                        } /* if #available(iOS 26.0, *) */
                     }
                 } /* ZStack */
             } /* VStack */

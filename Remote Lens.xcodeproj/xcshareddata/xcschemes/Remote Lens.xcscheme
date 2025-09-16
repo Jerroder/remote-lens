@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1640"
+   LastUpgradeVersion = "2600"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "467CF0212DFA1A2800D7F87C"
-               BuildableName = "Remote Lens.app"
+               BuildableName = "Remote Lens"
                BlueprintName = "Remote Lens"
                ReferencedContainer = "container:Remote Lens.xcodeproj">
             </BuildableReference>
@@ -69,28 +69,27 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "467CF0212DFA1A2800D7F87C"
-            BuildableName = "Remote Lens.app"
+            BuildableName = "Remote Lens"
             BlueprintName = "Remote Lens"
             ReferencedContainer = "container:Remote Lens.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "467CF0212DFA1A2800D7F87C"
-            BuildableName = "Remote Lens.app"
+            BuildableName = "Remote Lens"
             BlueprintName = "Remote Lens"
             ReferencedContainer = "container:Remote Lens.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
