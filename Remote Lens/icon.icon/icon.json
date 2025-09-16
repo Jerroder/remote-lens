@@ -41,6 +41,7 @@
               "value" : "none"
             }
           ],
+          "glass" : false,
           "image-name" : "2.1.svg",
           "name" : "2.1"
         },
@@ -51,6 +52,7 @@
               "value" : "none"
             }
           ],
+          "glass" : false,
           "image-name" : "2.2.svg",
           "name" : "2.2"
         },
@@ -61,6 +63,7 @@
               "value" : "none"
             }
           ],
+          "glass" : false,
           "image-name" : "2.3.svg",
           "name" : "2.3"
         },

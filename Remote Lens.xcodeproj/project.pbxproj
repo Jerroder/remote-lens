@@ -98,7 +98,6 @@
 				46FA91772DFC24040059912E /* Localizable.xcstrings */,
 				467CF0592DFA1DB700D7F87C /* PrivacyInfo.xcprivacy */,
 				467CF08D2DFA1E3300D7F87C /* README.md */,
-				46D04EB32E28460D00A31C2A /* Remote Lens.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -316,8 +315,9 @@
 		467CF0462DFA1A2A00D7F87C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = "Remote Lens/Remote Lens.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -359,8 +359,9 @@
 		467CF0472DFA1A2A00D7F87C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = "Remote Lens/Remote Lens.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
