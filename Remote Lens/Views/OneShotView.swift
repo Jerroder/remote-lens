@@ -363,7 +363,6 @@ struct OneShotView: View {
                                     Image(systemName: "minus.magnifyingglass")
                                         .font(.system(size: geometry.size.width * 0.07, weight: .thin))
                                         .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
-                                        .background(Color(UIColor.clear))
                                         .foregroundColor(Color(UIColor.label))
                                 }
                                 .padding()
@@ -377,10 +376,8 @@ struct OneShotView: View {
                                     Image(systemName: "plus.magnifyingglass")
                                         .font(.system(size: geometry.size.width * 0.07, weight: .thin))
                                         .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
-                                        .background(Color(UIColor.clear))
                                         .foregroundColor(Color(UIColor.label))
                                 }
-                                .padding()
                                 .buttonStyle(.glass)
                             } else {
                                 Button(action: {
@@ -428,7 +425,6 @@ struct OneShotView: View {
                                 Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
                                     .font(.system(size: geometry.size.width * 0.07, weight: .thin))
                                     .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
-                                    .background(Color(UIColor.clear))
                                     .foregroundColor(Color(UIColor.label))
                             }
                             .buttonStyle(.glass)

@@ -1,7 +1,5 @@
 {
-  "fill" : {
-    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
-  },
+  "fill" : "automatic",
   "groups" : [
     {
       "layers" : [
@@ -98,6 +96,7 @@
         }
       ],
       "name" : "Group 2",
+      "opacity" : 1,
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
