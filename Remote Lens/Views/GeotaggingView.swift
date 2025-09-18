@@ -90,15 +90,15 @@ struct ManualGeotaggingView: View {
                 if !locationManager.isLocationServiceEnabled {
                     Text("location_access_denied".localized(comment: "Location access denied"))
                         .fontWeight(.bold)
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                 } else if locationManager.isLoading {
                     Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
                         .fontWeight(.semibold)
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.orange)
                 } else if locationManager.locationDataReceived {
                     Text("gps_data_sent".localized(comment: "GPS data sent to the camera"))
                         .fontWeight(.regular)
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                 }
             }
             .transition(.opacity)
@@ -168,7 +168,7 @@ struct GeotaggingOnceView: View {
                         showingInfoAlert = true
                     }) {
                         Image(systemName: "info.circle")
-                            .foregroundColor(Color(UIColor.systemGray))
+                            .foregroundStyle(Color(UIColor.systemGray))
                     }
                     .buttonStyle(PlainButtonStyle())
                     .padding()
@@ -183,18 +183,21 @@ struct GeotaggingOnceView: View {
                 if !locationManager.isLocationServiceEnabled {
                     Text("location_access_denied".localized(comment: "Location access denied"))
                         .fontWeight(.bold)
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                 } else if locationManager.isLoading {
                     Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
                         .fontWeight(.semibold)
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.orange)
                 }
             }
             .toolbar { // Throws an error for some reason, but it works
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("done".localized(comment: "Done")) {
+                    Button {
                         focusedField = false
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .padding()
                     }
                 }
             }
@@ -283,11 +286,9 @@ struct GeotaggingView: View {
             } /* VStack */
             .padding()
             .toolbar {
-                ToolbarItem {
-                    Button(action: {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("done".localized(comment: "Done"), systemImage: "checkmark") {
                         showGeotagSheet = false
-                    }) {
-                        Text("done".localized(comment: "Done"))
                     }
                 }
             }

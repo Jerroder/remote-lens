@@ -341,16 +341,16 @@ struct OneShotView: View {
                                     if bleManager.hasAutofocusFailed {
                                         Text("could_not_autofocus".localized(comment: "Could not autofocus"))
                                             .font(.system(size: geometry.size.width * 0.04, weight: .bold))
-                                            .foregroundColor(.red)
+                                            .foregroundStyle(.red)
                                     }
                                     if !locationManager.isLocationServiceEnabled && locationManager.isGeotagginEnabled {
                                         Text("location_access_denied".localized(comment: "Location access denied"))
                                             .font(.system(size: geometry.size.width * 0.04, weight: .bold))
-                                            .foregroundColor(.red)
+                                            .foregroundStyle(.red)
                                     } else if locationManager.isLoading && locationManager.isGeotagginEnabled {
                                         Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
                                             .font(.system(size: geometry.size.width * 0.04, weight: .semibold))
-                                            .foregroundColor(.orange)
+                                            .foregroundStyle(.orange)
                                     }
                                 }
                                 .frame(maxWidth: .infinity)
@@ -363,7 +363,7 @@ struct OneShotView: View {
                                     Image(systemName: "minus.magnifyingglass")
                                         .font(.system(size: geometry.size.width * 0.07, weight: .thin))
                                         .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
-                                        .foregroundColor(Color(UIColor.label))
+                                        .foregroundStyle(Color(UIColor.label))
                                 }
                                 .padding()
                                 .buttonStyle(.glass)
@@ -376,7 +376,7 @@ struct OneShotView: View {
                                     Image(systemName: "plus.magnifyingglass")
                                         .font(.system(size: geometry.size.width * 0.07, weight: .thin))
                                         .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
-                                        .foregroundColor(Color(UIColor.label))
+                                        .foregroundStyle(Color(UIColor.label))
                                 }
                                 .buttonStyle(.glass)
                             } else {
@@ -388,7 +388,7 @@ struct OneShotView: View {
                                         .frame(width: geometry.size.width * 0.10, height: geometry.size.width * 0.10)
                                         .padding()
                                         .background(Color(UIColor.secondarySystemBackground))
-                                        .foregroundColor(Color(UIColor.label))
+                                        .foregroundStyle(Color(UIColor.label))
                                         .cornerRadius(10)
                                 }
                                 .padding()
@@ -403,7 +403,7 @@ struct OneShotView: View {
                                         .frame(width: geometry.size.width * 0.10, height: geometry.size.width * 0.10)
                                         .padding()
                                         .background(Color(UIColor.secondarySystemBackground))
-                                        .foregroundColor(Color(UIColor.label))
+                                        .foregroundStyle(Color(UIColor.label))
                                         .cornerRadius(10)
                                 }
                                 .padding()
@@ -425,7 +425,7 @@ struct OneShotView: View {
                                 Image(systemName: bleManager.isShootingMode ? "play.square" : "camera.aperture")
                                     .font(.system(size: geometry.size.width * 0.07, weight: .thin))
                                     .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
-                                    .foregroundColor(Color(UIColor.label))
+                                    .foregroundStyle(Color(UIColor.label))
                             }
                             .buttonStyle(.glass)
                             .padding()
@@ -439,7 +439,7 @@ struct OneShotView: View {
                                     .frame(width: geometry.size.width * 0.10, height: geometry.size.width * 0.10)
                                     .padding()
                                     .background(Color(UIColor.secondarySystemBackground))
-                                    .foregroundColor(Color(UIColor.label))
+                                    .foregroundStyle(Color(UIColor.label))
                                     .cornerRadius(10)
                             }
                             .padding()

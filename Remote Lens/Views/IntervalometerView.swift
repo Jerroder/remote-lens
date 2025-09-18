@@ -65,7 +65,7 @@ struct IntervalometerView: View {
                     showingInfoAlert = true
                 }) {
                     Image(systemName: "info.circle")
-                        .foregroundColor(Color(UIColor.systemGray))
+                        .foregroundStyle(Color(UIColor.systemGray))
                 }
                 .buttonStyle(PlainButtonStyle())
                 .alert("Info", isPresented: $showingInfoAlert) {
