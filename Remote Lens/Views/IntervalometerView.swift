@@ -95,10 +95,46 @@ struct IntervalometerView: View {
         } /* Form */
         .scrollDisabled(true)
         .toolbar { // Throws an error for some reason, but it works
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("done".localized(comment: "Done")) {
-                    focusedField = nil
+            ToolbarItem(placement: .keyboard) {
+                HStack {
+                    Button(action: {
+                        switch focusedField {
+                        case .waitBetweenPhotos:
+                            focusedField = .numberOfPhotos
+                        case .exposureTime:
+                            focusedField = .waitBetweenPhotos
+                        default:
+                            break
+                        }
+                    }) {
+                        Image(systemName: "chevron.up")
+                            .padding()
+                    }
+                    .disabled(focusedField == .numberOfPhotos)
+                    
+                    Button(action: {
+                        switch focusedField {
+                        case .numberOfPhotos:
+                            focusedField = .waitBetweenPhotos
+                        case .waitBetweenPhotos:
+                            focusedField = .exposureTime
+                        default:
+                            break
+                        }
+                    }) {
+                        Image(systemName: "chevron.down")
+                            .padding()
+                    }
+                    .disabled(focusedField == .exposureTime)
+                    
+                    Spacer()
+                    
+                    Button {
+                        focusedField = nil
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .padding()
+                    }
                 }
             }
         }
