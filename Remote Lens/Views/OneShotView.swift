@@ -5,7 +5,6 @@
 //  Created by Jerroder on 2025-06-13.
 //
 
-import AVKit
 import SwiftUI
 
 struct OuterCircle: Shape {
