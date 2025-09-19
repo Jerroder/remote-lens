@@ -53,6 +53,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private let confirmGeotagUUID: CBUUID = CBUUID(string: "00040003-0000-1000-0000-D8492FFFA821")
     
     private let canonCompanyIdentifier: UInt16 = 0x01A9
+    private let _iphoneName: String = UIDevice.current.name
     
     private var discoveredPeripheralIDs: Set<UUID> = Set<UUID>()
     private var centralManager: CBCentralManager!
@@ -70,7 +71,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     
     private var _selectedPeripheral: CBPeripheral?
     private var _requiresPairing: Bool = true
-    private var _iphoneName: String = UIDevice.current.name
     private var scanTimer: Timer?
     private var shouldScan: Bool = true
     private var lastConnectedPeripheralUUID: UUID?

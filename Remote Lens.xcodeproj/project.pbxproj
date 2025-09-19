@@ -335,7 +335,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "The app needs Bluetooth access in order to connect to the camera.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "If the user wants to add GPS data to their photos, the app needs access to location to send the coordinates to the camera.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "The app needs access to your location in order to send the coordinates to the camera, if you want to add GPS data to your photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -378,7 +378,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "The app needs Bluetooth access in order to connect to the camera.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "If the user wants to add GPS data to their photos, the app needs access to location to send the coordinates to the camera.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "The app needs access to your location in order to send the coordinates to the camera, if you want to add GPS data to your photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
