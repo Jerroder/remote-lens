@@ -22,7 +22,13 @@
       "layers" : [
         {
           "image-name" : "1.3.svg",
-          "name" : "1.3"
+          "name" : "1.3",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 1
+            }
+          ]
         },
         {
           "fill-specializations" : [
@@ -33,7 +39,13 @@
           ],
           "glass" : false,
           "image-name" : "2.1.svg",
-          "name" : "2.1"
+          "name" : "2.1",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 0.65
+            }
+          ]
         },
         {
           "fill-specializations" : [
@@ -45,7 +57,13 @@
           "glass" : false,
           "hidden" : false,
           "image-name" : "2.2.svg",
-          "name" : "2.2"
+          "name" : "2.2",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 0.65
+            }
+          ]
         },
         {
           "fill-specializations" : [
@@ -57,7 +75,13 @@
           "glass" : false,
           "hidden" : false,
           "image-name" : "2.3.svg",
-          "name" : "2.3"
+          "name" : "2.3",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 0.65
+            }
+          ]
         },
         {
           "fill-specializations" : [
@@ -66,6 +90,7 @@
               "value" : "automatic"
             }
           ],
+          "hidden" : false,
           "image-name" : "2.4.svg",
           "name" : "2.4"
         },
@@ -75,7 +100,8 @@
           "name" : "2.5"
         },
         {
-          "glass" : true,
+          "glass" : false,
+          "hidden" : false,
           "image-name" : "2.6.svg",
           "name" : "2.6"
         },
