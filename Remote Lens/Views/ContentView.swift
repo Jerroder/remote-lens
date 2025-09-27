@@ -12,10 +12,10 @@ struct ContentView: View {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var timerManager = TimerManager()
     
-    @State private var selectedOption: Int = UserDefaults.standard.integer(forKey: "selectedOption")
-    @State private var gpsInterval: Double = UserDefaults.standard.double(forKey: "gpsInterval")
+    @AppStorage("selectedOption") private var selectedOption: Int = 0
+    @AppStorage("gpsInterval") private var gpsInterval: Double = 30.0
     @State private var showGeotagSheet: Bool = false
-    @State private var waitForFix: Bool = UserDefaults.standard.bool(forKey: "waitForFix")
+    @AppStorage("waitForFix") private var waitForFix: Bool = false
     
     var body: some View {
         NavigationStack {

@@ -80,9 +80,9 @@ struct OneShotView: View {
     @Binding var selectedOption: Int
     
     @State private var isButtonPressed: Bool = false
-    @State private var isBurstMode: Bool = UserDefaults.standard.bool(forKey: "isBurstMode")
-    @State private var isVideoMode: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
-    @State private var isTransitioningToVideo: Bool = UserDefaults.standard.bool(forKey: "isVideoMode")
+    @AppStorage("isBurstMode") private var isBurstMode: Bool = false
+    @AppStorage("isVideoMode") private var isVideoMode: Bool = false
+    @State private var isTransitioningToVideo: Bool = false
     @State private var isVideoModeToggleDisabled: Bool = false
     
     @State private var shutterRadiusFactor: CGFloat = 0.7
@@ -121,15 +121,11 @@ struct OneShotView: View {
                                 } else {
                                     transitionFromVideo()
                                 }
-                                UserDefaults.standard.set(newValue, forKey: "isVideoMode")
                             }
                             .disabled(isVideoModeToggleDisabled)
                         if !isTransitioningToVideo {
                             Toggle("burst_mode".localized(comment: "Burst mode"), isOn: $isBurstMode)
                                 .padding(.horizontal)
-                                .onChange(of: isBurstMode) { oldValue, newValue in
-                                    UserDefaults.standard.set(newValue, forKey: "isBurstMode")
-                                }
                         } else {
                             Spacer()
                                 .frame(height: 40) // temporary

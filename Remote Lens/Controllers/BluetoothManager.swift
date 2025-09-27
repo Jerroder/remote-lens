@@ -8,6 +8,7 @@
 import CoreBluetooth
 import Foundation
 import UIKit
+import SwiftUI
 
 enum Buttons {
     case middle
@@ -74,7 +75,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     private var scanTimer: Timer?
     private var shouldScan: Bool = true
     private var lastConnectedPeripheralUUID: UUID?
-    private var hasUserInitiatedDisconnect: Bool = UserDefaults.standard.bool(forKey: "hasUserInitiatedDisconnect")
+    @AppStorage("hasUserInitiatedDisconnect") private var hasUserInitiatedDisconnect: Bool = false
     private var isAutofocusSuccess: Bool = false
     
     var peripherals: [CBPeripheral] {

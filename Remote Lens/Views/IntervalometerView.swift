@@ -16,9 +16,9 @@ struct IntervalometerView: View {
     @ObservedObject var locationManager: LocationManager
     @Binding var showGeotagSheet: Bool
     
-    @State private var numberOfPhotos: Int = UserDefaults.standard.integer(forKey: "numberOfPhotos")
-    @State private var waitBetweenPhotos: Double = UserDefaults.standard.double(forKey: "waitBetweenPhotos")
-    @State private var exposureTime: Double = UserDefaults.standard.double(forKey: "exposureTime")
+    @AppStorage("numberOfPhotos") private var numberOfPhotos: Int = 10
+    @AppStorage("waitBetweenPhotos") private var waitBetweenPhotos: Double = 5.0
+    @AppStorage("exposureTime") private var exposureTime: Double = 0.0
     @State private var isRunning: Bool = false
     @State private var showingInfoAlert: Bool = false
     @State private var unit: Unit = Unit(symbol: "s")
@@ -33,9 +33,6 @@ struct IntervalometerView: View {
                 TextField("0", value: $numberOfPhotos, format: .number)
                     .keyboardType(.numberPad)
                     .focused($focusedField, equals: .numberOfPhotos)
-                    .onChange(of: numberOfPhotos) { _, _ in
-                        UserDefaults.standard.set(numberOfPhotos, forKey: "numberOfPhotos")
-                    }
             }
             
             HStack {
@@ -44,9 +41,6 @@ struct IntervalometerView: View {
                 TextFieldWithUnit(value: $waitBetweenPhotos, unit: $unit)
                     .keyboardType(.decimalPad)
                     .focused($focusedField, equals: .waitBetweenPhotos)
-                    .onChange(of: waitBetweenPhotos) { _, _ in
-                        UserDefaults.standard.set(waitBetweenPhotos, forKey: "waitBetweenPhotos")
-                    }
             }
             
             HStack {
@@ -55,9 +49,6 @@ struct IntervalometerView: View {
                 TextFieldWithUnit(value: $exposureTime, unit: $unit)
                     .keyboardType(.decimalPad)
                     .focused($focusedField, equals: .exposureTime)
-                    .onChange(of: exposureTime) { _, _ in
-                        UserDefaults.standard.set(exposureTime, forKey: "exposureTime")
-                    }
                 
                 Spacer()
                 

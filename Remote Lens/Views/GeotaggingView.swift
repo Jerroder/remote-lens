@@ -21,8 +21,6 @@ struct NoGeotaggingView: View {
                     selectedOption = 0
                 }
                 
-                UserDefaults.standard.set(selectedOption, forKey: "selectedOption")
-                
                 if newValue {
                     let data: Data = Data([0x03])
                     bleManager.writeGPSValue(data: data)
@@ -53,8 +51,6 @@ struct ManualGeotaggingView: View {
                 withAnimation {
                     selectedOption = 1
                 }
-                
-                UserDefaults.standard.set(selectedOption, forKey: "selectedOption")
                 
                 if newValue {
                     locationManager.isGeotagginEnabled = false
@@ -127,8 +123,6 @@ struct GeotaggingOnceView: View {
                     selectedOption = 2
                 }
                 
-                UserDefaults.standard.set(selectedOption, forKey: "selectedOption")
-                
                 if newValue {
                     locationManager.isGeotagginEnabled = true
                     locationManager.setIsAsync(isAsync: true)
@@ -153,12 +147,10 @@ struct GeotaggingOnceView: View {
                 
                 HStack {
                     Text("gps_interval".localized(comment: "Get GPS data every"))
-                    // .frame(width: 170, alignment: .leading)
                     TextFieldWithUnit(value: $gpsInterval, unit: $unit)
                         .keyboardType(.decimalPad)
                         .focused($focusedField)
                         .onChange(of: gpsInterval) { _, _ in
-                            UserDefaults.standard.set(gpsInterval, forKey: "gpsInterval")
                             restartTimer()
                         }
                     
@@ -230,8 +222,6 @@ struct GeotaggingWhenTriggeredView: View {
                     selectedOption = 3
                 }
                 
-                UserDefaults.standard.set(selectedOption, forKey: "selectedOption")
-                
                 if newValue {
                     locationManager.isGeotagginEnabled = true
                     timerManager.stopTimer()
@@ -249,7 +239,6 @@ struct GeotaggingWhenTriggeredView: View {
                 Toggle("wait_for_gps".localized(comment: "Wait for GPS to get a fix before taking the photo"), isOn: $waitForFix)
                     .padding()
                     .onChange(of: waitForFix) { _, newValue in
-                        UserDefaults.standard.set(waitForFix, forKey: "waitForFix")
                         locationManager.setIsAsync(isAsync: newValue)
                     }
             }
@@ -287,7 +276,7 @@ struct GeotaggingView: View {
             .padding()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("done".localized(comment: "Done"), systemImage: "checkmark") {
+                    Button("", systemImage: "checkmark") {
                         showGeotagSheet = false
                     }
                 }
