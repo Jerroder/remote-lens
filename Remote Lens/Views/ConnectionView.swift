@@ -28,6 +28,7 @@ struct ConnectionView: View {
                         }
                     }) {
                         Text(peripheral.name ?? "unknown_device".localized(comment: "Unknown Device"))
+                            .foregroundColor(.accentColor)
                     }
                 }
             }

@@ -7,11 +7,11 @@
 
 import SwiftUI
 
+enum Field: Int, CaseIterable {
+    case numberOfPhotos, waitBetweenPhotos, exposureTime
+}
+
 struct IntervalometerView: View {
-    private enum Field: Int, CaseIterable {
-        case numberOfPhotos, waitBetweenPhotos, exposureTime
-    }
-    
     @ObservedObject var bleManager: BluetoothManager
     @ObservedObject var locationManager: LocationManager
     @Binding var showGeotagSheet: Bool
@@ -23,6 +23,7 @@ struct IntervalometerView: View {
     @State private var showingInfoAlert: Bool = false
     @State private var unit: Unit = Unit(symbol: "s")
     
+    @State private var isKeyboardShowing: Bool = false
     @FocusState private var focusedField: Field?
     
     var body: some View {
@@ -84,51 +85,8 @@ struct IntervalometerView: View {
                 Spacer()
             }
         } /* Form */
+        .withTextFieldToolbarDoneWithChevrons(isKeyboardShowing: $isKeyboardShowing, focusedField: _focusedField)
         .scrollDisabled(true)
-        .toolbar { // Throws an error for some reason, but it works
-            ToolbarItem(placement: .keyboard) {
-                HStack {
-                    Button(action: {
-                        switch focusedField {
-                        case .waitBetweenPhotos:
-                            focusedField = .numberOfPhotos
-                        case .exposureTime:
-                            focusedField = .waitBetweenPhotos
-                        default:
-                            break
-                        }
-                    }) {
-                        Image(systemName: "chevron.up")
-                            .padding()
-                    }
-                    .disabled(focusedField == .numberOfPhotos)
-                    
-                    Button(action: {
-                        switch focusedField {
-                        case .numberOfPhotos:
-                            focusedField = .waitBetweenPhotos
-                        case .waitBetweenPhotos:
-                            focusedField = .exposureTime
-                        default:
-                            break
-                        }
-                    }) {
-                        Image(systemName: "chevron.down")
-                            .padding()
-                    }
-                    .disabled(focusedField == .exposureTime)
-                    
-                    Spacer()
-                    
-                    Button {
-                        focusedField = nil
-                    } label: {
-                        Image(systemName: "checkmark")
-                            .padding()
-                    }
-                }
-            }
-        }
         .sensoryFeedback(trigger: isRunning) { oldValue, newValue in
             let flex = newValue ? SensoryFeedback.Flexibility.soft : SensoryFeedback.Flexibility.solid
             return .impact(flexibility: flex, intensity: 1.0)
