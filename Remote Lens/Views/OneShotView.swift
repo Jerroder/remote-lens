@@ -114,21 +114,22 @@ struct OneShotView: View {
                                 }
                             }
                         ))
-                            .padding(.horizontal)
-                            .onChange(of: isTransitioningToVideo) { oldValue, newValue in
-                                if !isVideoMode {
-                                    transitionFromStills()
-                                } else {
-                                    transitionFromVideo()
-                                }
+                        .padding(.horizontal)
+                        .onChange(of: isTransitioningToVideo) { oldValue, newValue in
+                            if !isVideoMode {
+                                transitionFromStills()
+                            } else {
+                                transitionFromVideo()
                             }
-                            .disabled(isVideoModeToggleDisabled)
+                        }
+                        .disabled(isVideoModeToggleDisabled)
+                        
                         if !isTransitioningToVideo {
                             Toggle("burst_mode".localized(comment: "Burst mode"), isOn: $isBurstMode)
                                 .padding(.horizontal)
                         } else {
                             Spacer()
-                                .frame(height: 40) // temporary
+                                .frame(height: 40)
                         }
                         
                         Spacer()
@@ -362,18 +363,6 @@ struct OneShotView: View {
                                 }
                                 .padding()
                                 .buttonStyle(.glass)
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    bleManager.pressNavigationButton(button: Buttons.zoomIn)
-                                }) {
-                                    Image(systemName: "plus.magnifyingglass")
-                                        .font(.system(size: geometry.size.width * 0.07, weight: .thin))
-                                        .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
-                                        .foregroundStyle(Color(UIColor.label))
-                                }
-                                .buttonStyle(.glass)
                             } else {
                                 Button(action: {
                                     bleManager.pressNavigationButton(button: Buttons.zoomOut)
@@ -387,9 +376,26 @@ struct OneShotView: View {
                                         .cornerRadius(10)
                                 }
                                 .padding()
-                                
-                                Spacer()
-                                
+                            }
+                        }
+                        Spacer()
+                    }
+                    
+                    HStack {
+                        Spacer()
+                        
+                        if !bleManager.isShootingMode {
+                            if #available(iOS 26.0, *) {
+                                Button(action: {
+                                    bleManager.pressNavigationButton(button: Buttons.zoomIn)
+                                }) {
+                                    Image(systemName: "plus.magnifyingglass")
+                                        .font(.system(size: geometry.size.width * 0.07, weight: .thin))
+                                        .frame(width: geometry.size.width * 0.12, height: geometry.size.width * 0.12)
+                                        .foregroundStyle(Color(UIColor.label))
+                                }
+                                .buttonStyle(.glass)
+                            } else {
                                 Button(action: {
                                     bleManager.pressNavigationButton(button: Buttons.zoomIn)
                                 }) {
@@ -402,17 +408,13 @@ struct OneShotView: View {
                                         .cornerRadius(10)
                                 }
                                 .padding()
-                            } /* if #available(iOS 26.0, *) */
-                            
-                            Spacer()
-                            Spacer()
-                            Spacer()
+                            }
                         }
-                    } /* HStack */
+                        Spacer()
+                    }
                     
                     HStack {
                         Spacer()
-                        
                         if #available(iOS 26.0, *) {
                             Button(action: {
                                 bleManager.switchMode()
@@ -440,8 +442,9 @@ struct OneShotView: View {
                             .padding()
                             .sensoryFeedback(.impact(flexibility: .solid, intensity: 0.75), trigger: bleManager.isShootingMode)
                         } /* if #available(iOS 26.0, *) */
-                    }
+                    } /* HStack */
                 } /* ZStack */
+                .frame(maxWidth: .infinity)
             } /* VStack */
         } /* GeometryReader */
     } /* body */

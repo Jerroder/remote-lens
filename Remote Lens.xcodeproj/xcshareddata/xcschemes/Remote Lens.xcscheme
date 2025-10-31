@@ -29,30 +29,6 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
-      <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "467CF0302DFA1A2A00D7F87C"
-               BuildableName = "Remote LensTests.xctest"
-               BlueprintName = "Remote LensTests"
-               ReferencedContainer = "container:Remote Lens.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "467CF03A2DFA1A2A00D7F87C"
-               BuildableName = "Remote LensUITests.xctest"
-               BlueprintName = "Remote LensUITests"
-               ReferencedContainer = "container:Remote Lens.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -67,20 +43,11 @@
       <PathRunnable
          runnableDebuggingMode = "0"
          Location = "workspace"
-         FilePath = "../../../Library/Developer/Xcode/DerivedData/Remote_Lens-cnywsxofjrbkmaenqtkmhtslngdy/Build/Products/Debug-iphoneos/Remote Lens.app">
+         FilePath = "../../../Library/Developer/Xcode/DerivedData/Remote_Lens-cnywsxofjrbkmaenqtkmhtslngdy/Build/Products/Debug-iphonesimulator/Remote Lens.app">
       </PathRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "467CF0212DFA1A2800D7F87C"
-            BuildableName = "Remote Lens"
-            BlueprintName = "Remote Lens"
-            ReferencedContainer = "container:Remote Lens.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
