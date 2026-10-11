@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+#if targetEnvironment(simulator)
+private let isSimulator = true
+#else
+private let isSimulator = false
+#endif
+
 struct NoGeotaggingView: View {
     @StateObject var bleManager: BluetoothManager
     @StateObject var locationManager: LocationManager
@@ -83,7 +89,7 @@ struct ManualGeotaggingView: View {
                 .background(Color(UIColor.secondarySystemBackground))
                 .cornerRadius(10)
                 
-                if !locationManager.isLocationServiceEnabled {
+                if !isSimulator && !locationManager.isLocationServiceEnabled {
                     Text("location_access_denied".localized(comment: "Location access denied"))
                         .fontWeight(.bold)
                         .foregroundStyle(.red)
@@ -91,7 +97,7 @@ struct ManualGeotaggingView: View {
                     Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
                         .fontWeight(.semibold)
                         .foregroundStyle(.orange)
-                } else if locationManager.locationDataReceived {
+                } else if isSimulator || locationManager.locationDataReceived {
                     Text("gps_data_sent".localized(comment: "GPS data sent to the camera"))
                         .fontWeight(.regular)
                         .foregroundStyle(.green)
@@ -172,7 +178,7 @@ struct GeotaggingOnceView: View {
                 }
                 .padding(.horizontal)
                 
-                if !locationManager.isLocationServiceEnabled {
+                if !isSimulator && !locationManager.isLocationServiceEnabled {
                     Text("location_access_denied".localized(comment: "Location access denied"))
                         .fontWeight(.bold)
                         .foregroundStyle(.red)
@@ -180,6 +186,10 @@ struct GeotaggingOnceView: View {
                     Text("waiting_for_gps".localized(comment: "Waiting for GPS fix"))
                         .fontWeight(.semibold)
                         .foregroundStyle(.orange)
+                } else if isSimulator {
+                    Text("gps_data_sent".localized(comment: "GPS data sent to the camera"))
+                        .fontWeight(.regular)
+                        .foregroundStyle(.green)
                 }
             }
             .toolbar { // Throws an error for some reason, but it works
